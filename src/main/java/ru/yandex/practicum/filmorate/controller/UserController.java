@@ -95,41 +95,4 @@ public class UserController {
 
         return ++nextId;
     }
-
-    /*private void validateUser(User user) {
-        validateEmail(user.getEmail());
-        validateLogin(user.getLogin());
-        validateBirthday(user.getBirthday());
-    }
-
-    private void validateEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new ValidationException("Электронная почта не может быть пустой");
-        }
-
-        if (!email.contains("@")) {
-            throw new ValidationException("Электронная почта должна содержать символ \"@\"");
-        }
-    }
-
-    private void validateLogin(String login) {
-        if (login == null || login.isBlank()) {
-            throw new ValidationException("Логин не может быть пустым");
-        }
-
-        if (login.contains(" ")) {
-            throw new ValidationException("Логин не может содержать пробелы");
-        }
-    }
-
-    private void validateBirthday(LocalDate birthday) {
-        if (birthday == null) {
-            return;
-        }
-
-        if (birthday.isAfter(LocalDate.now())) {
-            log.warn("Неккоректная дата рождения");
-            throw new ValidationException("Неккоректная дата рождения");
-        }
-    }*/
 }
