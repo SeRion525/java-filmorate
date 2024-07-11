@@ -12,6 +12,23 @@ import java.time.LocalDate;
 public class User {
     private Long id;
 
+    public User() {
+    }
+
+    public User(Long id, String email, String login, String name, LocalDate birthday) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+
+        if (name == null || name.isBlank()) {
+            this.name = login;
+        } else {
+            this.name = name;
+        }
+
+        this.birthday = birthday;
+    }
+
     @Email
     @NotNull
     @NotBlank
@@ -25,4 +42,12 @@ public class User {
 
     @PastOrPresent
     private LocalDate birthday;
+
+    public void setLogin(@NotNull @NotBlank String login) {
+        if (this.name == null || this.name.equals(this.login)) {
+            this.name = login;
+        }
+
+        this.login = login;
+    }
 }

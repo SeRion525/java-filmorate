@@ -1,7 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import ch.qos.logback.classic.Logger;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     private final Map<Long, User> users = new HashMap<>();
-    private final Logger log = (Logger) LoggerFactory.getLogger(UserController.class);
+    private final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping
     public List<User> getAll() {
@@ -32,22 +32,7 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        try {
-            validateUser(user);
-        } catch (ValidationException exception) {
-            log.warn(exception.getMessage(), exception);
-            throw new ValidationException(exception);
-        } catch (RuntimeException otherException) {
-            log.warn(otherException.getMessage(), otherException);
-            throw new RuntimeException(otherException);
-        }
-
         user.setId(getNextId());
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
         users.put(user.getId(), user);
         log.info("Создан пользователь {} c ID = {}", user.getLogin(), user.getId());
         return user;
@@ -55,58 +40,50 @@ public class UserController {
 
     @PutMapping
     public User update(@Valid @RequestBody User newUser) {
+        @NotNull
+        Long id = newUser.getId();
+
+        User oldUser = users.get(id);
         try {
-            if (newUser.getId() == null) {
-                log.warn("У пользователя должен быть id");
-                throw new ValidationException("У пользователя должен быть id");
-            }
-
-            User oldUser = users.get(newUser.getId());
             if (oldUser == null) {
-                log.warn("Пользователь с id = {} не найден", newUser.getId());
-                throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+                throw new NotFoundException("Пользователь с ID = " + id + " не найден");
             }
-
-
-            if (newUser.getEmail() != null) {
-                validateEmail(newUser.getEmail());
-                oldUser.setEmail(newUser.getEmail());
-                log.trace("Email пользователя с ID = {} был изменён", oldUser.getId());
-            }
-
-            if (newUser.getLogin() != null) {
-                validateLogin(newUser.getLogin());
-                if (oldUser.getName().equals(oldUser.getLogin())) {
-                    oldUser.setName(newUser.getLogin());
-                    log.trace("Имя пользователя с ID = {} было изменено", oldUser.getId());
-                }
-                oldUser.setLogin(newUser.getLogin());
-                log.trace("Логин пользователя с ID = {} был изменён", oldUser.getId());
-            }
-
-            if (newUser.getBirthday() != null) {
-                validateBirthday(newUser.getBirthday());
-                oldUser.setBirthday(newUser.getBirthday());
-                log.trace("Дата рождения пользователя с ID = {} была изменена", oldUser.getId());
-            }
-
-            if (newUser.getName() != null) {
-                oldUser.setName(newUser.getName());
-                log.trace("Имя пользователя с ID = {} было изменено", oldUser.getId());
-            }
-
-            log.debug("Данные пользователя с ID = {} были обнавлены", oldUser.getId());
-            return oldUser;
-        } catch (ValidationException exception) {
-            log.warn(exception.getMessage(), exception);
-            throw new ValidationException(exception);
         } catch (NotFoundException exception) {
             log.warn(exception.getMessage(), exception);
             throw new NotFoundException(exception);
-        } catch (RuntimeException otherException) {
-            log.warn(otherException.getMessage(), otherException);
-            throw new RuntimeException(otherException);
         }
+
+        if (newUser.getEmail() != null) {
+            @Valid
+            String newEmail = newUser.getEmail();
+
+            oldUser.setEmail(newEmail);
+            log.trace("Email пользователя с ID = {} был изменён", oldUser.getId());
+        }
+
+        if (newUser.getLogin() != null) {
+            @Valid
+            String login = newUser.getLogin();
+
+            oldUser.setLogin(login);
+            log.trace("Логин пользователя с ID = {} был изменён", oldUser.getId());
+        }
+
+        if (newUser.getBirthday() != null) {
+            @Valid
+            LocalDate newBirthday = newUser.getBirthday();
+
+            oldUser.setBirthday(newBirthday);
+            log.trace("Дата рождения пользователя с ID = {} была изменена", oldUser.getId());
+        }
+
+        if (newUser.getName() != null) {
+            oldUser.setName(newUser.getName());
+            log.trace("Имя пользователя с ID = {} было изменено", oldUser.getId());
+        }
+
+        log.debug("Данные пользователя с ID = {} были обнавлены", oldUser.getId());
+        return oldUser;
     }
 
     private long getNextId() {
@@ -119,7 +96,7 @@ public class UserController {
         return ++nextId;
     }
 
-    private void validateUser(User user) {
+    /*private void validateUser(User user) {
         validateEmail(user.getEmail());
         validateLogin(user.getLogin());
         validateBirthday(user.getBirthday());
@@ -154,5 +131,5 @@ public class UserController {
             log.warn("Неккоректная дата рождения");
             throw new ValidationException("Неккоректная дата рождения");
         }
-    }
+    }*/
 }
