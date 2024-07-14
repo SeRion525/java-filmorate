@@ -1,103 +1,66 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
-
-    private final Map<Long, Film> films = new HashMap<>();
-    private final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
 
     @GetMapping
-    public List<Film> getAll() {
-        return new ArrayList<>(films.values());
+    public List<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Film findById(@PathVariable @Positive long id) {
+        return filmStorage.findById(id);
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Film create(@Valid @RequestBody Film film) {
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("Фильм с названием {} и ID = {} успешно добавлен", film.getName(), film.getId());
-        return film;
+        return filmStorage.create(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film newFilm) {
-        @NotNull
-        Long id = newFilm.getId();
-
-        Film oldFilm = films.get(id);
-        try {
-            if (oldFilm == null) {
-                throw new NotFoundException("Фильм с ID = " + id + " не найден");
-            }
-        } catch (NotFoundException exception) {
-            log.warn(exception.getMessage(), exception);
-            throw new NotFoundException(exception);
-        }
-
-        if (newFilm.getName() != null) {
-            @Valid
-            String newName = newFilm.getName();
-
-            oldFilm.setName(newName);
-            log.trace("Название фильма с ID = {} было изменено", oldFilm.getId());
-        }
-
-        if (newFilm.getDescription() != null) {
-            @Valid
-            String newDescription = newFilm.getDescription();
-
-            oldFilm.setDescription(newDescription);
-            log.trace("Описание фильма с ID = {} было изменено", oldFilm.getId());
-        }
-
-        if (newFilm.getReleaseDate() != null) {
-            @Valid
-            LocalDate newReleaseDate = newFilm.getReleaseDate();
-
-            oldFilm.setReleaseDate(newReleaseDate);
-            log.trace("Дата релиза фильма с ID = {} была изменена", oldFilm.getId());
-        }
-
-        if (newFilm.getDuration() != null) {
-            @Valid
-            Integer newDuration = newFilm.getDuration();
-
-            oldFilm.setDuration(newDuration);
-            log.trace("Продолжительность фильма с ID = {} была изменена", oldFilm.getId());
-        }
-
-        log.debug("Фильм с названием {} и ID = {} успешно обновлен", oldFilm.getName(), oldFilm.getId());
-        return oldFilm;
-
+        return filmStorage.update(newFilm);
     }
 
-    private long getNextId() {
-        long nextId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
+    @PutMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addLike(@PathVariable @Positive long id, @PathVariable @Positive long userId) {
+        filmService.addLike(id, userId);
+    }
 
-        return ++nextId;
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable @Positive long id, @PathVariable @Positive long userId) {
+        filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive int count) {
+        return filmService.findPopular(count);
     }
 }
