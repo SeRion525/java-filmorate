@@ -7,10 +7,28 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
     private Long id;
+
+    @Email
+    @NotNull
+    @NotBlank
+    private String email;
+
+    @NotNull
+    @NotBlank
+    private String login;
+
+    private String name;
+
+    @PastOrPresent
+    private LocalDate birthday;
+
+    private Set<Long> friends = new HashSet<>();
 
     public User() {
     }
@@ -28,20 +46,6 @@ public class User {
 
         this.birthday = birthday;
     }
-
-    @Email
-    @NotNull
-    @NotBlank
-    private String email;
-
-    @NotNull
-    @NotBlank
-    private String login;
-
-    private String name;
-
-    @PastOrPresent
-    private LocalDate birthday;
 
     public void setLogin(@NotNull @NotBlank String login) {
         if (this.name == null || this.name.equals(this.login)) {
