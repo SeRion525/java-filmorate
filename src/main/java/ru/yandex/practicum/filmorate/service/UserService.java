@@ -14,6 +14,22 @@ import java.util.List;
 public class UserService {
     public final UserStorage userStorage;
 
+    public List<User> findAll() {
+        return userStorage.findAll();
+    }
+
+    public User findById(long userId) {
+        return userStorage.findById(userId);
+    }
+
+    public User create(User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(User newUser) {
+        return userStorage.update(newUser);
+    }
+
     public List<User> findAllFriends(long userId) {
         User user = userStorage.findById(userId);
         List<User> friends = user.getFriends().stream()

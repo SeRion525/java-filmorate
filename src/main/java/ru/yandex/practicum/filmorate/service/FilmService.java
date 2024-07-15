@@ -16,6 +16,22 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
+    public List<Film> findAll() {
+        return filmStorage.findAll();
+    }
+
+    public Film findById(long filmId) {
+        return filmStorage.findById(filmId);
+    }
+
+    public Film create(Film film) {
+        return filmStorage.create(film);
+    }
+
+    public Film update(Film newFilm) {
+        return filmStorage.update(newFilm);
+    }
+
     public void addLike(long filmId, long userId) {
         Film film = filmStorage.findById(filmId);
         userStorage.findById(userId);
