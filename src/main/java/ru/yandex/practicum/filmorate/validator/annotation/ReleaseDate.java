@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.annotation;
+package ru.yandex.practicum.filmorate.validator.annotation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = ReleaseDateValidator.class)
 @Documented
 public @interface ReleaseDate {
-    String message() default "{Не может быть раньше дня рождения кино}";
+    String message() default "Не может быть раньше дня рождения кино";
 
     Class<?>[] groups() default {};
 
