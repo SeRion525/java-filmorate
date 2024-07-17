@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validator.group.Create;
+import ru.yandex.practicum.filmorate.validator.group.Default;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -35,7 +37,7 @@ public class FilmValidationTest {
     @Test
     @DisplayName("Пройти валидацию при корректных данных фильма")
     void shouldSuccessValidationWhenValidFilmData() {
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Create.class, Default.class);
         assertTrue(violations.isEmpty(), "Ошибка валидации при коректных данных фильма");
     }
 
@@ -44,7 +46,7 @@ public class FilmValidationTest {
     void shouldFailValidationWhenInvalidName() {
         film.setName(" ");
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Create.class);
         assertFalse(violations.isEmpty(), "Неккоректная валидация названия фильма");
     }
 
@@ -55,7 +57,7 @@ public class FilmValidationTest {
                 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
                 "aaaaaaaaaaaaaa");
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertTrue(violations.isEmpty(), "Ошибка валидации при корректном описании фильма");
     }
 
@@ -66,7 +68,7 @@ public class FilmValidationTest {
                 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
                 "aaaaaaaaaaaaaaa");
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertFalse(violations.isEmpty(), "Неккоректная валидация описания фильма");
     }
 
@@ -75,7 +77,7 @@ public class FilmValidationTest {
     void shouldSuccessValidationWhenReleaseDateIsFilmBirthday() {
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertTrue(violations.isEmpty(), "Ошибка валидации при корректной дате релиза фильма");
     }
 
@@ -84,7 +86,7 @@ public class FilmValidationTest {
     void shouldFailValidationWhenReleaseDateIsBeforeFilmBirthday() {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertFalse(violations.isEmpty(), "Неккоректная валидация даты релиза фильма");
     }
 
@@ -93,7 +95,7 @@ public class FilmValidationTest {
     void shouldFailValidationWhenZeroDuration() {
         film.setDuration(0);
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertFalse(violations.isEmpty(), "Неккоректная валидация продолжительности фильма");
     }
 
@@ -102,7 +104,7 @@ public class FilmValidationTest {
     void shouldFailValidationWhenNegativeDuration() {
         film.setDuration(-1);
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Default.class);
         assertFalse(violations.isEmpty(), "Неккоректная валидация продолжительности фильма");
     }
 }

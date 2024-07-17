@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
+    private long counter = 0;
     private final Map<Long, User> users = new HashMap<>();
 
     @Override
@@ -38,7 +38,6 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         if (newUser.getEmail() != null) {
-            @Valid
             String newEmail = newUser.getEmail();
 
             oldUser.setEmail(newEmail);
@@ -46,7 +45,6 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         if (newUser.getLogin() != null) {
-            @Valid
             String login = newUser.getLogin();
 
             oldUser.setLogin(login);
@@ -54,7 +52,6 @@ public class InMemoryUserStorage implements UserStorage {
         }
 
         if (newUser.getBirthday() != null) {
-            @Valid
             LocalDate newBirthday = newUser.getBirthday();
 
             oldUser.setBirthday(newBirthday);
@@ -91,12 +88,6 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private long getNextId() {
-        long nextId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-
-        return ++nextId;
+        return ++counter;
     }
 }

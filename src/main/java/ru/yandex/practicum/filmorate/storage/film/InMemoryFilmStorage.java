@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -16,6 +14,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
+    private long counter = 0;
     private final Map<Long, Film> films = new HashMap<>();
 
     @Override
@@ -28,7 +27,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film newFilm) {
-        @NotNull
         Long id = newFilm.getId();
 
         Film oldFilm = films.get(id);
@@ -37,7 +35,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         if (newFilm.getName() != null) {
-            @Valid
             String newName = newFilm.getName();
 
             oldFilm.setName(newName);
@@ -45,7 +42,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         if (newFilm.getDescription() != null) {
-            @Valid
             String newDescription = newFilm.getDescription();
 
             oldFilm.setDescription(newDescription);
@@ -53,7 +49,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         if (newFilm.getReleaseDate() != null) {
-            @Valid
             LocalDate newReleaseDate = newFilm.getReleaseDate();
 
             oldFilm.setReleaseDate(newReleaseDate);
@@ -61,7 +56,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
 
         if (newFilm.getDuration() != null) {
-            @Valid
             Integer newDuration = newFilm.getDuration();
 
             oldFilm.setDuration(newDuration);
@@ -93,12 +87,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     private long getNextId() {
-        long nextId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-
-        return ++nextId;
+        return ++counter;
     }
 }

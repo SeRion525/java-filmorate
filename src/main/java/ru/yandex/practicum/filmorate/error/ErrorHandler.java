@@ -1,5 +1,6 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.error;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,7 +9,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.ErrorResponse;
+
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
@@ -30,9 +32,26 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMethodArgumentNotValid(final MethodArgumentNotValidException exception) {
+    public ValidationErrorResponse handleConstraintValidationException(final ConstraintViolationException exception) {
         log.warn(exception.getMessage(), exception);
-        return new ErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка валидации запроса", exception.getMessage());
+
+        final List<Violation> violations = exception.getConstraintViolations().stream()
+                .map(violation -> new Violation(violation.getPropertyPath().toString(), violation.getMessage()))
+                .toList();
+
+        return new ValidationErrorResponse(HttpStatus.BAD_REQUEST, violations);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleMethodArgumentNotValid(final MethodArgumentNotValidException exception) {
+        log.warn(exception.getMessage(), exception);
+
+        final List<Violation> violations = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> new Violation(error.getField(), error.getDefaultMessage()))
+                .toList();
+
+        return new ValidationErrorResponse(HttpStatus.BAD_REQUEST, violations);
     }
 
     @ExceptionHandler

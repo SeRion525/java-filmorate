@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validator.group.Create;
+import ru.yandex.practicum.filmorate.validator.group.Default;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -34,7 +36,7 @@ public class UserValidationTest {
     @Test
     @DisplayName("Пройти валидацию при корректных данных пользователя")
     void shouldSuccessValidationWhenValidFilmData() {
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Create.class, Default.class);
         assertTrue(violations.isEmpty(), "Ошибка валидации при корректных данных пользователя");
     }
 
@@ -43,7 +45,7 @@ public class UserValidationTest {
     void shouldFailValidationWhenEmptyEmail() {
         user.setEmail(" ");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
         assertFalse(violations.isEmpty(), "Некорректная валидация при пустой электронной почте");
     }
 
@@ -52,7 +54,7 @@ public class UserValidationTest {
     void shouldFailValidationWhenIncorrectEmail() {
         user.setEmail("@test");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
         assertFalse(violations.isEmpty(), "Некорректная валидация при некорректной электронной почте");
     }
 
@@ -61,8 +63,17 @@ public class UserValidationTest {
     void shouldFailValidationWhenEmptyLogin() {
         user.setLogin(" ");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
         assertFalse(violations.isEmpty(), "Некорректная валидация при пустом логине");
+    }
+
+    @Test
+    @DisplayName("Провалить валидацию при логине c пробелами")
+    void shouldFailValidationWhenLoginHasWhiteSpace() {
+        user.setLogin("a v");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
+        assertFalse(violations.isEmpty(), "Некорректная валидация при логине с пробелами");
     }
 
     @Test
@@ -70,7 +81,7 @@ public class UserValidationTest {
     void shouldSuccessValidationWhenPresentBirthDay() {
         user.setBirthday(LocalDate.now());
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
         assertTrue(violations.isEmpty(), "Ошибка валидации при корректной дате рождения");
     }
 
@@ -79,7 +90,7 @@ public class UserValidationTest {
     void shouldFailValidationWhenFutureBirthDay() {
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Default.class);
         assertFalse(violations.isEmpty(), "Некорректная валидация при дате рождения в будущем");
     }
 }
