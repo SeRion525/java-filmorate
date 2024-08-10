@@ -1,22 +1,15 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
-import ru.yandex.practicum.filmorate.validator.group.Create;
-import ru.yandex.practicum.filmorate.validator.group.Default;
-import ru.yandex.practicum.filmorate.validator.group.Update;
 
 import java.util.List;
 
 @Service
-@Validated
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
@@ -26,21 +19,19 @@ public class UserService {
         return userStorage.findAll();
     }
 
-    public User findById(@Positive long userId) {
+    public User findById(long userId) {
         return userStorage.findById(userId);
     }
 
-    @Validated({Default.class, Create.class})
-    public User create(@Valid User user) {
+    public User create(User user) {
         return userStorage.create(user);
     }
 
-    @Validated({Default.class, Update.class})
-    public User update(@Valid User newUser) {
+    public User update(User newUser) {
         return userStorage.update(newUser);
     }
 
-    public List<User> findAllFriends(@Positive long userId) {
+    public List<User> findAllFriends(long userId) {
         User user = userStorage.findById(userId);
         List<User> friends = user.getFriends().keySet().stream()
                 .filter(friendId -> user.getFriends().get(friendId))
@@ -51,7 +42,7 @@ public class UserService {
         return friends;
     }
 
-    public void addFriend(@Positive long userId, @Positive long friendId) {
+    public void addFriend(long userId, long friendId) {
         User user = userStorage.findById(userId);
         User friend = userStorage.findById(friendId);
 
@@ -70,7 +61,7 @@ public class UserService {
         }
     }
 
-    public void removeFriend(@Positive long userId, @Positive long friendId) {
+    public void removeFriend(long userId, long friendId) {
         User user = userStorage.findById(userId);
         User friend = userStorage.findById(friendId);
 
@@ -79,7 +70,7 @@ public class UserService {
         log.debug("Пользователь с ID = {} удалил друга с ID = {}", userId, friendId);
     }
 
-    public List<User> findCommonFriends(@Positive long id, @Positive long otherId) {
+    public List<User> findCommonFriends(long id, long otherId) {
         User user = userStorage.findById(id);
         User otherUser = userStorage.findById(otherId);
         List<User> commonFriends = user.getFriends().keySet().stream()

@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.validator.group.Update;
 import java.util.List;
 
 @Service
-@Validated
 @Slf4j
 @RequiredArgsConstructor
 public class FilmService {
@@ -27,35 +26,33 @@ public class FilmService {
         return filmStorage.findAll();
     }
 
-    public Film findById(@Positive long filmId) {
+    public Film findById(long filmId) {
         return filmStorage.findById(filmId);
     }
 
-    @Validated({Create.class, Default.class})
-    public Film create(@Valid Film film) {
+    public Film create(Film film) {
         return filmStorage.create(film);
     }
 
-    @Validated({Update.class, Default.class})
-    public Film update(@Valid Film newFilm) {
+    public Film update(Film newFilm) {
         return filmStorage.update(newFilm);
     }
 
-    public void addLike(@Positive long filmId, @Positive long userId) {
+    public void addLike(long filmId, long userId) {
         Film film = filmStorage.findById(filmId);
         userStorage.findById(userId);
         film.getUserLikes().add(userId);
         log.debug("Пользователь с ID = {} лайкнул фильм с ID = {}", userId, filmId);
     }
 
-    public void removeLike(@Positive long filmId, @Positive long userId) {
+    public void removeLike(long filmId, long userId) {
         Film film = filmStorage.findById(filmId);
         userStorage.findById(userId);
         film.getUserLikes().remove(userId);
         log.debug("Пользователь с ID = {} удалил лайк у фильма с ID = {}", userId, filmId);
     }
 
-    public List<Film> findPopular(@Positive int count) {
+    public List<Film> findPopular(int count) {
         List<Film> films = filmStorage.findAll();
         List<Film> popularFilms = films.stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getUserLikes().size(), f1.getUserLikes().size()))
