@@ -34,5 +34,9 @@ public class Film {
     @Positive(groups = Default.class)
     private Integer duration;
 
+    private Rating rating;
+
+    private Set<Genre> genres = new HashSet<>();
+
     private Set<Long> userLikes = new HashSet<>();
 }
