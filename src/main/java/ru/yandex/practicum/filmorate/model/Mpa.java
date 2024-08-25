@@ -11,7 +11,7 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(of = "id")
-public class Genre {
+public class Mpa {
     private Long id;
     private String name;
 }

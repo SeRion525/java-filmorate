@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +13,6 @@ import ru.yandex.practicum.filmorate.validator.group.Default;
 import ru.yandex.practicum.filmorate.validator.group.Update;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 
 @Data
 public class User {
@@ -36,9 +34,6 @@ public class User {
 
     @PastOrPresent(groups = Default.class)
     private LocalDate birthday;
-
-    @JsonIgnore
-    private HashMap<Long, Boolean> friends = new HashMap<>();
 
     public User() {
     }
