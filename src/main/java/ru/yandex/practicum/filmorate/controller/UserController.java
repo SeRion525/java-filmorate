@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validator.group.Create;
@@ -31,20 +31,20 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> findAll() {
-        return userService.findAll();
+    public List<User> getUsers() {
+        return userService.getUsers();
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable @Positive long id) {
-        return userService.findById(id);
+    public User getUserById(@PathVariable @Positive long id) {
+        return userService.getUserById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Validated({Default.class, Create.class})
     public User create(@RequestBody @Valid User user) {
-        return userService.create(user);
+        return userService.save(user);
     }
 
     @PutMapping
@@ -56,28 +56,31 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void addFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+        if (id == friendId) {
+            throw new ValidationException("Пользователь не может добавить самого себя в друзья");
+        }
         userService.addFriend(id, friendId);
-    }
-
-    @PatchMapping("/{id}/friends/{friendId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void confirmFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
-        userService.confirmFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+        if (id == friendId) {
+            throw new ValidationException("Пользователь не может удалить самого себя из друзей");
+        }
         userService.removeFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> findAllFriends(@PathVariable @Positive long id) {
-        return userService.findAllFriends(id);
+    public List<User> getFriends(@PathVariable @Positive long id) {
+        return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> findCommonFriends(@PathVariable @Positive long id, @PathVariable @Positive long otherId) {
-        return userService.findCommonFriends(id, otherId);
+    public List<User> getCommonFriends(@PathVariable @Positive long id, @PathVariable @Positive long otherId) {
+        if (id == otherId) {
+            throw new ValidationException("ID пользователей должны отличаться");
+        }
+        return userService.getCommonFriends(id, otherId);
     }
 }
