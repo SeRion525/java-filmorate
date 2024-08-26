@@ -18,12 +18,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
-    private final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
-    private final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+    public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
