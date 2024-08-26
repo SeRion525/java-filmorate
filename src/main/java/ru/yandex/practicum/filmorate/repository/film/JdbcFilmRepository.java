@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.JdbcBaseRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -116,7 +115,7 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     @Override
     public int getLikesByFilmId(long filmId) {
         return jdbc.query(GET_LIKES_BY_FILM_ID_QUERY, new MapSqlParameterSource("filmId", filmId),
-                (rs, rowNum) -> rs.getInt("likes_count"))
+                        (rs, rowNum) -> rs.getInt("likes_count"))
                 .getFirst();
     }
 
@@ -148,14 +147,10 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
     private SqlParameterSource[] getFilmIdAndGenreIdsSqlParameters(Film film) {
         Set<Genre> genres = film.getGenres();
-        int batchSize = genres.size();
 
-        List<SqlParameterSource> args = new ArrayList<>();
-        for (Genre genre : genres) {
-            args.add(new MapSqlParameterSource("filmId", film.getId())
-                    .addValue("genreId", genre.getId()));
-        }
-
-        return args.toArray(new SqlParameterSource[batchSize]);
+        return genres.stream()
+                .map(genre -> new MapSqlParameterSource("filmId", film.getId())
+                        .addValue("genreId", genre.getId()))
+                .toArray(SqlParameterSource[]::new);
     }
 }
