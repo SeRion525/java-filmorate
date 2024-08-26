@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,10 +32,8 @@ class JdbcGenreRepositoryTest {
     @DisplayName("Получить жанр по ID")
     void shouldGetGenreById() {
         Genre genre = getAllGenres().getFirst();
-        Optional<Genre> savedGenre = genreRepository.getById(1L);
+        Genre savedGenre = genreRepository.getById(1L).orElseThrow();
         assertThat(savedGenre)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(genre);
     }

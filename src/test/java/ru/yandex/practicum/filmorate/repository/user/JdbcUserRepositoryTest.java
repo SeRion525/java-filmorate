@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -60,10 +59,8 @@ class JdbcUserRepositoryTest {
     @Test
     @DisplayName("Получить пользователя по ID")
     void shouldGetUserById() {
-        Optional<User> user = userRepository.getById(TEST_USER1_ID);
+        User user = userRepository.getById(TEST_USER1_ID).orElseThrow();
         assertThat(user)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(getTestUser1());
     }
@@ -89,10 +86,8 @@ class JdbcUserRepositoryTest {
         user.setBirthday(LocalDate.of(1977, 7, 7));
 
         user = userRepository.save(user);
-        Optional<User> savedUser = userRepository.getById(user.getId());
+        User savedUser = userRepository.getById(user.getId()).orElseThrow();
         assertThat(savedUser)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(user);
     }
@@ -105,10 +100,8 @@ class JdbcUserRepositoryTest {
 
         assertDoesNotThrow(() -> userRepository.update(user));
 
-        Optional<User> updatedUser = userRepository.getById(TEST_USER1_ID);
+        User updatedUser = userRepository.getById(TEST_USER1_ID).orElseThrow();
         assertThat(updatedUser)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(user);
     }

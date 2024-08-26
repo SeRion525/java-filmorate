@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,10 +98,8 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Получить фильм по ID")
     void getById() {
-        Optional<Film> savedFilm = filmRepository.getById(TEST_FILM1_ID);
+        Film savedFilm = filmRepository.getById(TEST_FILM1_ID).orElseThrow();
         assertThat(savedFilm)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(getTestFilm1());
     }
@@ -126,11 +123,9 @@ class JdbcFilmRepositoryTest {
         film.setDuration(30);
         film.setGenres(genres);
         film = filmRepository.save(film);
-        Optional<Film> savedFilm = filmRepository.getById(film.getId());
+        Film savedFilm = filmRepository.getById(film.getId()).orElseThrow();
 
         assertThat(savedFilm)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(film);
     }
@@ -149,10 +144,8 @@ class JdbcFilmRepositoryTest {
 
         assertDoesNotThrow(() -> filmRepository.update(film));
 
-        Optional<Film> updatedFilm = filmRepository.getById(TEST_FILM1_ID);
+        Film updatedFilm = filmRepository.getById(TEST_FILM1_ID).orElseThrow();
         assertThat(updatedFilm)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(film);
     }

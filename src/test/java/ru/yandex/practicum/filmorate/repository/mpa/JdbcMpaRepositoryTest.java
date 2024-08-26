@@ -24,10 +24,8 @@ class JdbcMpaRepositoryTest {
     @DisplayName("Получить рейтинг по ID")
     void shouldGetMpaById() {
         Mpa mpa = getAllMpa().getFirst();
-        Optional<Mpa> savedMpa = mpaRepository.getById(1L);
+        Mpa savedMpa = mpaRepository.getById(1L).orElseThrow();
         assertThat(savedMpa)
-                .isPresent()
-                .get()
                 .usingRecursiveComparison()
                 .isEqualTo(mpa);
     }
