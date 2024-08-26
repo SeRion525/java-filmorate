@@ -44,11 +44,6 @@ public class JdbcUserRepository extends JdbcBaseRepository<User> implements User
             "WHERE user_id = :otherId" +
             ");";
 
-    private static final String INSERT_FRIENDS_BY_USER_ID_QUERY = "INSERT friends(user_id, friend_id, status) " +
-            "VALUES (:userId, :friendId, :status);";
-
-    private static final String DELETE_FRIEND_BY_USER_ID_QUERY = "DELETE FROM friends WHERE user_id = :userId";
-
     public JdbcUserRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<User> extractor, ResultSetExtractor<List<User>> extractorToList) {
         super(jdbc, extractor, extractorToList);
