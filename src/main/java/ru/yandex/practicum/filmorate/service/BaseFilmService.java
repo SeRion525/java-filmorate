@@ -22,6 +22,8 @@ import java.util.Set;
 @Slf4j
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
+    private final static String NOT_FOUND_USER = "Не найден пользователь с ID = ";
+    private final static String NOT_FOUND_FILM = "Не найден фильм с ID = ";
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
@@ -35,7 +37,7 @@ public class BaseFilmService implements FilmService {
     @Override
     public Film getFilmById(long filmId) {
         return filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с ID = " + filmId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + filmId));
     }
 
     @Override
@@ -54,7 +56,7 @@ public class BaseFilmService implements FilmService {
     @Override
     public Film updateFilm(Film newFilm) {
         final Film savedFilm = filmRepository.getById(newFilm.getId())
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с ID = " + newFilm.getId()));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + newFilm.getId()));
 
         if (newFilm.getMpa() != null) {
             savedFilm.setMpa(getMpaFromRepository(newFilm.getMpa().getId()));
@@ -76,9 +78,9 @@ public class BaseFilmService implements FilmService {
     @Override
     public void addLike(long filmId, long userId) {
         User user = userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с ID = " + filmId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + filmId));
 
         filmRepository.addLike(film.getId(), user.getId());
     }
@@ -86,9 +88,9 @@ public class BaseFilmService implements FilmService {
     @Override
     public void removeLike(long filmId, long userId) {
         User user = userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException("Не найден фильм с ID = " + filmId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + filmId));
 
         filmRepository.deleteLike(film.getId(), user.getId());
     }

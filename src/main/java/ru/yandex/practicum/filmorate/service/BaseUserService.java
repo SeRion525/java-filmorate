@@ -13,6 +13,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
+    private final static String NOT_FOUND_USER = "Не найден пользователь с ID = ";
     private final UserRepository userRepository;
 
     @Override
@@ -23,7 +24,7 @@ public class BaseUserService implements UserService {
     @Override
     public User getUserById(long userId) {
         return userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
     }
 
     @Override
@@ -34,7 +35,7 @@ public class BaseUserService implements UserService {
     @Override
     public User update(User newUser) {
         User savedUser = userRepository.getById(newUser.getId())
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + newUser.getId()));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + newUser.getId()));
 
         savedUser.setLogin(newUser.getLogin());
         savedUser.setName(newUser.getName());
@@ -48,34 +49,34 @@ public class BaseUserService implements UserService {
     @Override
     public List<User> getFriends(long userId) {
         User user = userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         return userRepository.getFriends(userId);
     }
 
     @Override
     public void addFriend(long userId, long friendId) {
         User user = userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         User friend = userRepository.getById(friendId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + friendId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + friendId));
         userRepository.addFriend(user.getId(), friend.getId());
     }
 
     @Override
     public void removeFriend(long userId, long friendId) {
         User user = userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + userId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         User friend = userRepository.getById(friendId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + friendId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + friendId));
         userRepository.removeFriend(user.getId(), friend.getId());
     }
 
     @Override
     public List<User> getCommonFriends(long id, long otherId) {
         User user = userRepository.getById(id)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + id));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + id));
         User otherUser = userRepository.getById(otherId)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с ID = " + otherId));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + otherId));
         return userRepository.getCommonFriends(user.getId(), otherUser.getId());
     }
 }
