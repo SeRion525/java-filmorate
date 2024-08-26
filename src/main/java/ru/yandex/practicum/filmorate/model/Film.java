@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.validator.group.Update;
 
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -35,5 +36,5 @@ public class Film {
 
     private Mpa mpa;
 
-    private LinkedHashSet<Genre> genres;
+    private Set<Genre> genres = new LinkedHashSet<>();
 }

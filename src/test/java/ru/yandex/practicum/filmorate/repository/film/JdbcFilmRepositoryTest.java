@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -31,7 +32,7 @@ class JdbcFilmRepositoryTest {
     private final JdbcFilmRepository filmRepository;
 
     static Film getTestFilm1() {
-        LinkedHashSet<Genre> genres = new LinkedHashSet<>();
+        Set<Genre> genres = new LinkedHashSet<>();
         Genre genre1 = new Genre();
         genre1.setId(1L);
         genre1.setName("Комедия");
@@ -58,7 +59,7 @@ class JdbcFilmRepositoryTest {
     }
 
     static Film getTestFilm2() {
-        LinkedHashSet<Genre> genres = new LinkedHashSet<>();
+        Set<Genre> genres = new LinkedHashSet<>();
         Genre genre1 = new Genre();
         genre1.setId(2L);
         genre1.setName("Драма");
@@ -109,7 +110,7 @@ class JdbcFilmRepositoryTest {
     @Test
     @DisplayName("Сохранить фильм в базу данных")
     void shouldSaveFilmInDatabase() {
-        LinkedHashSet<Genre> genres = new LinkedHashSet<>();
+        Set<Genre> genres = new LinkedHashSet<>();
         Genre genre = new Genre();
         genre.setId(2L);
         genre.setName("Драма");
@@ -139,7 +140,7 @@ class JdbcFilmRepositoryTest {
     void shouldUpdateFilmData() {
         Film film = getTestFilm1();
         film.setName("newName");
-        LinkedHashSet<Genre> genres = film.getGenres();
+        Set<Genre> genres = film.getGenres();
         genres.clear();
         Genre genre = new Genre();
         genre.setId(2L);
