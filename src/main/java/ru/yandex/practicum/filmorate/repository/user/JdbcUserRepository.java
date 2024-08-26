@@ -16,33 +16,39 @@ public class JdbcUserRepository extends JdbcBaseRepository<User> implements User
 
     private static final String GET_BY_ID_QUERY = "SELECT users.* FROM users WHERE user_id = :userId";
 
-    private static final String INSERT_USER_QUERY = "INSERT INTO users(login, email, name, birthday) " +
-            "VALUES (:login, :email, :name, :birth);";
+    private static final String INSERT_USER_QUERY = """
+            INSERT INTO users(login, email, name, birthday)
+            VALUES (:login, :email, :name, :birth);
+            """;
 
-    private static final String UPDATE_USER_QUERY = "UPDATE users " +
-            "SET login = :login, email = :email, name = :name, birthday = :birth " +
-            "WHERE user_id = :userId;";
+    private static final String UPDATE_USER_QUERY = """
+            UPDATE users
+            SET login = :login, email = :email, name = :name, birthday = :birth
+            WHERE user_id = :userId;
+            """;
 
-    private static final String GET_FRIENDS_BY_USER_ID_QUERY = "SELECT users.* FROM users " +
-            "JOIN friends ON friends.friend_id = users.user_id " +
-            "WHERE friends.user_id = :userId;";
+    private static final String GET_FRIENDS_BY_USER_ID_QUERY = """
+            SELECT users.* FROM users
+            JOIN friends ON friends.friend_id = users.user_id
+            WHERE friends.user_id = :userId;
+            """;
 
-    private static final String ADD_FRIEND_QUERY = "MERGE INTO friends AS f " +
-            "USING (VALUES(:userId, :friendId)) AS s(user_id, friend_id) " +
-            "ON s.user_id = f.user_id AND s.friend_id = f.friend_id " +
-            "WHEN NOT MATCHED THEN " +
-            "INSERT VALUES (s.user_id, s.friend_id);";
+    private static final String ADD_FRIEND_QUERY = """
+            MERGE INTO friends AS f
+            USING (VALUES(:userId, :friendId)) AS s(user_id, friend_id)
+            ON s.user_id = f.user_id AND s.friend_id = f.friend_id
+            WHEN NOT MATCHED THEN
+            INSERT VALUES (s.user_id, s.friend_id);
+            """;
 
     private static final String REMOVE_FRIEND_QUERY = "DELETE FROM friends WHERE user_id = :userId AND friend_id = :friendId";
 
-    private static final String GET_COMMON_FRIENDS_QUERY = "SELECT users.* FROM users " +
-            "WHERE user_id IN (" +
-            "SELECT friend_id FROM friends " +
-            "WHERE user_id = :id " +
-            "INTERSECT " +
-            "SELECT friend_id FROM friends " +
-            "WHERE user_id = :otherId" +
-            ");";
+    private static final String GET_COMMON_FRIENDS_QUERY = """
+            SELECT u.* FROM users AS u
+            JOIN friends AS f1 ON f1.user_Id = :id
+            JOIN friends AS f2 ON f2.user_id = :otherId
+            WHERE u.user_id = f1.friend_id AND u.user_id = f2.friend_id;
+            """;
 
     public JdbcUserRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<User> extractor, ResultSetExtractor<List<User>> extractorToList) {
