@@ -22,8 +22,8 @@ import java.util.Set;
 @Slf4j
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
-    private final static String NOT_FOUND_USER = "Не найден пользователь с ID = ";
-    private final static String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+    private final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
+    private final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;

@@ -13,7 +13,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
-    private final static String NOT_FOUND_USER = "Не найден пользователь с ID = ";
+    private final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
     private final UserRepository userRepository;
 
     @Override
