@@ -41,7 +41,7 @@ class JdbcMpaRepositoryTest {
                 .isEqualTo(getAllMpa());
     }
 
-    static List<Mpa> getAllMpa() {
+    private List<Mpa> getAllMpa() {
         Mpa mpa1 = new Mpa();
         mpa1.setId(1L);
         mpa1.setName("G");

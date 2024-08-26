@@ -51,7 +51,7 @@ class JdbcGenreRepositoryTest {
                 .isEqualTo(genres);
     }
 
-    static List<Genre> getAllGenres() {
+    private List<Genre> getAllGenres() {
         Genre genre1 = new Genre();
         genre1.setId(1L);
         genre1.setName("Комедия");

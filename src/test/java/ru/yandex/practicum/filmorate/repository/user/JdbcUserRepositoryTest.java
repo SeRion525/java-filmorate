@@ -22,12 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DisplayName("Тестировать репозиторий пользователей")
 class JdbcUserRepositoryTest {
-    public static final long TEST_USER1_ID = 1L;
-    public static final long TEST_USER2_ID = 2L;
-    public static final long TEST_USER3_ID = 3L;
-    private final JdbcUserRepository userRepository;
+    private static final long TEST_USER1_ID = 1L;
+    private static final long TEST_USER2_ID = 2L;
+    private static final long TEST_USER3_ID = 3L;
+    private final UserRepository userRepository;
 
-    static User getTestUser1() {
+    private User getTestUser1() {
         User user = new User();
         user.setId(TEST_USER1_ID);
         user.setLogin("user1");
@@ -37,7 +37,7 @@ class JdbcUserRepositoryTest {
         return user;
     }
 
-    static User getTestUser2() {
+    private User getTestUser2() {
         User user = new User();
         user.setId(TEST_USER2_ID);
         user.setLogin("user2");
@@ -47,7 +47,7 @@ class JdbcUserRepositoryTest {
         return user;
     }
 
-    static User getTestUser3() {
+    private User getTestUser3() {
         User user = new User();
         user.setId(TEST_USER3_ID);
         user.setLogin("user3");

@@ -27,11 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DisplayName("Тестировать репозиторий фильмов")
 class JdbcFilmRepositoryTest {
-    public static final long TEST_FILM1_ID = 1L;
-    public static final long TEST_FILM2_ID = 2L;
-    private final JdbcFilmRepository filmRepository;
+    private static final long TEST_FILM1_ID = 1L;
+    private static final long TEST_FILM2_ID = 2L;
+    private final FilmRepository filmRepository;
 
-    static Film getTestFilm1() {
+    private Film getTestFilm1() {
         Set<Genre> genres = new LinkedHashSet<>();
         Genre genre1 = new Genre();
         genre1.setId(1L);
@@ -58,7 +58,7 @@ class JdbcFilmRepositoryTest {
         return film;
     }
 
-    static Film getTestFilm2() {
+    private Film getTestFilm2() {
         Set<Genre> genres = new LinkedHashSet<>();
         Genre genre1 = new Genre();
         genre1.setId(2L);
