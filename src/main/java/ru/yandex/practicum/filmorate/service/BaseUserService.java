@@ -50,7 +50,7 @@ public class BaseUserService implements UserService {
     public List<User> getFriends(long userId) {
         User user = userRepository.getById(userId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
-        return userRepository.getFriends(userId);
+        return userRepository.getFriends(user.getId());
     }
 
     @Override
