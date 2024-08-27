@@ -13,8 +13,6 @@ import ru.yandex.practicum.filmorate.validator.group.Default;
 import ru.yandex.practicum.filmorate.validator.group.Update;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 public class User {
@@ -36,8 +34,6 @@ public class User {
 
     @PastOrPresent(groups = Default.class)
     private LocalDate birthday;
-
-    private Set<Long> friends = new HashSet<>();
 
     public User() {
     }
