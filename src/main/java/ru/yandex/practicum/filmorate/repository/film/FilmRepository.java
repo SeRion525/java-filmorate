@@ -22,6 +22,5 @@ public interface FilmRepository {
 
     List<Film> getMostPopular(int count);
 
-    void delete(long filmId);
-
+    List<Film> filmsByDirector(long directorId, String sortBy);
 }

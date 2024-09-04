@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.film;
 
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -44,5 +45,18 @@ public abstract class AbstractFilmResultExtractor {
         }
 
         return genre;
+    }
+
+    protected Director mapDirector(ResultSet resultSet) throws SQLException {
+        long directorId = resultSet.getLong("director_id");
+        Director director = null;
+
+        if (!resultSet.wasNull()) {
+            director = new Director();
+            director.setId(directorId);
+            director.setName(resultSet.getString("director_name"));
+        }
+
+        return director;
     }
 }

@@ -30,7 +30,6 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
 
-
     @GetMapping
     public List<Film> getFilms() {
         return filmService.getFilms();
@@ -71,9 +70,8 @@ public class FilmController {
         return filmService.getMostPopular(count);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFilm(@PathVariable @Positive long id) {
-        filmService.deleteFilm(id);
+    @GetMapping("/director/{directorId}")
+    public List<Film> filmsByDirector(@PathVariable long directorId, @RequestParam String sortBy) {
+        return filmService.filmsByDirector(directorId, sortBy);
     }
 }

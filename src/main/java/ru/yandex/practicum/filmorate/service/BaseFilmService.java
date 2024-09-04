@@ -5,18 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.repository.director.DirectorRepository;
 import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.genre.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
 
@@ -24,16 +20,12 @@ import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_US
 @Slf4j
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
-
-
     public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
-
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
-
-
+    private final DirectorRepository directorRepository;
 
     @Override
     public List<Film> getFilms() {
@@ -56,6 +48,10 @@ public class BaseFilmService implements FilmService {
             film.setGenres(new LinkedHashSet<>(getGenresFromRepository(film.getGenres())));
         }
 
+        if (film.getDirectors() != null) {
+            film.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(film.getDirectors())));
+        }
+
         return filmRepository.save(film);
     }
 
@@ -70,6 +66,10 @@ public class BaseFilmService implements FilmService {
 
         if (newFilm.getGenres() != null) {
             savedFilm.setGenres(new LinkedHashSet<>(getGenresFromRepository(newFilm.getGenres())));
+        }
+
+        if (newFilm.getDirectors() != null) {
+            savedFilm.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(newFilm.getDirectors())));
         }
 
         savedFilm.setName(newFilm.getName());
@@ -106,6 +106,12 @@ public class BaseFilmService implements FilmService {
         return filmRepository.getMostPopular(count);
     }
 
+    @Override
+    public List<Film> filmsByDirector(long directorId, String sortBy) {
+        return filmRepository.filmsByDirector(directorId, sortBy);
+    }
+
+
     private List<Genre> getGenresFromRepository(Set<Genre> genres) {
         final List<Long> genreIds = genres.stream().map(Genre::getId).toList();
         final List<Genre> savedGenres = genreRepository.getByIds(genreIds);
@@ -121,10 +127,14 @@ public class BaseFilmService implements FilmService {
 
     }
 
-    public void deleteFilm(long filmId) {
-        if (filmRepository.getById(filmId).isEmpty()) {
-            throw new NotFoundException("Фильм с данным ID не найден.");
+    private List<Director> getDirectorFromRepository(Set<Director> directors) {
+        final List<Long> directorIds = directors.stream().map(Director::getId).toList();
+        final List<Director> savedDirectors = directorRepository.getByIds(directorIds);
+
+        if (directorIds.size() != savedDirectors.size()) {
+            throw new ValidationException("Режиссёр не найдены");
         }
-        filmRepository.delete(filmId);
+
+        return savedDirectors;
     }
 }
