@@ -21,4 +21,6 @@ public interface FilmRepository {
     int getLikesByFilmId(long filmId);
 
     List<Film> getMostPopular(int count);
+
+    List<Film> filmsByDirector(long directorId, String sortBy);
 }
