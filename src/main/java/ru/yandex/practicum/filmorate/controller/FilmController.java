@@ -30,6 +30,7 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
 
+
     @GetMapping
     public List<Film> getFilms() {
         return filmService.getFilms();
@@ -68,5 +69,11 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getMostPopular(@RequestParam(defaultValue = "10") @Positive int count) {
         return filmService.getMostPopular(count);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable @Positive long id) {
+        filmService.deleteFilm(id);
     }
 }
