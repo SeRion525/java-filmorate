@@ -16,7 +16,14 @@ import java.util.Set;
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
 
-    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE filmId = :filmId";
+
+    private static final String DELETE_FILM_QUERY = """
+            DELETE FROM films WHERE film_id = :filmId;
+            """;
+
+    private static final String DELETE_FILM_GENRES_BY_FILM_ID_QUERY = """
+            DELETE FROM films_genres WHERE film_id = :filmId;
+            """;
 
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name FROM films
@@ -48,8 +55,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             SET name = :name, description = :desc, release_date = :date, duration = :dur, mpa_id = :mpa
             WHERE film_id = :filmId
             """;
-
-    private static final String DELETE_FILM_GENRES_BY_FILM_ID_QUERY = "DELETE FROM films_genres WHERE film_id = :filmId";
 
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO likes AS t
@@ -173,6 +178,8 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
     @Override
     public void delete(long filmId) {
+        jdbc.update(DELETE_FILM_GENRES_BY_FILM_ID_QUERY, new MapSqlParameterSource("filmId", filmId));
         jdbc.update(DELETE_FILM_QUERY, new MapSqlParameterSource("filmId", filmId));
     }
+
 }
