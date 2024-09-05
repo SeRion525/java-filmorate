@@ -14,6 +14,9 @@ import java.util.*;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
+
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE filmId = :filmId";
+
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
             directors.director_id, directors.name as director_name FROM films
@@ -226,6 +229,11 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                 .map(genre -> new MapSqlParameterSource("filmId", film.getId())
                         .addValue("genreId", genre.getId()))
                 .toArray(SqlParameterSource[]::new);
+    }
+
+    @Override
+    public void delete(long filmId) {
+        jdbc.update(DELETE_FILM_QUERY, new MapSqlParameterSource("filmId", filmId));
     }
 
     private SqlParameterSource[] getFilmIdAndDirectorIdsSqlParameters(Film film) {

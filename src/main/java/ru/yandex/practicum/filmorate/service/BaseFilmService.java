@@ -134,14 +134,10 @@ public class BaseFilmService implements FilmService {
 
     }
 
-    private List<Director> getDirectorFromRepository(Set<Director> directors) {
-        final List<Long> directorIds = directors.stream().map(Director::getId).toList();
-        final List<Director> savedDirectors = directorRepository.getByIds(directorIds);
-
-        if (directorIds.size() != savedDirectors.size()) {
-            throw new ValidationException("Режиссёр не найдены");
+    public void deleteFilm(long filmId) {
+        if (filmRepository.getById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильм с данным ID не найден.");
         }
-
-        return savedDirectors;
+        filmRepository.delete(filmId);
     }
 }
