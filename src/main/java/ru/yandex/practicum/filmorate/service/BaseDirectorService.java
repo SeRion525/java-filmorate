@@ -45,11 +45,10 @@ public class BaseDirectorService implements DirectorService {
     }
 
     @Override
-    public Director deleteDirectorById(long id) {
+    public void deleteDirectorById(long id) {
         Director existedDirector = directorRepository.getById(id)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_DIRECTOR + id));
 
         directorRepository.delete(id);
-        return existedDirector;
     }
 }

@@ -2,7 +2,6 @@ spring:
   main:
     log-startup-info: true
     banner-mode: off
-    output.ansi.enabled: ALWAYS
   sql:
     init:
       mode: ALWAYS
@@ -13,6 +12,9 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password: password
+  output:
+    ansi:
+      enabled: always
 
 logging.level:
   org.zalando.logbook: DEBUG
