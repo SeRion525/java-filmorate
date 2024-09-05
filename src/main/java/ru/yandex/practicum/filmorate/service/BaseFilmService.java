@@ -108,9 +108,16 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> filmsByDirector(long directorId, String sortBy) {
-        return filmRepository.filmsByDirector(directorId, sortBy);
-    }
+        if (sortBy.equalsIgnoreCase("year")) {
+            return filmRepository.getDirectorFilmsSortedByYear(directorId);
+        }
 
+        if (sortBy.equalsIgnoreCase("likes")) {
+            return filmRepository.getDirectorFilmsSortedByLikes(directorId);
+        }
+
+        throw new ValidationException("Указан неверный параметр сортировки");
+    }
 
     private List<Genre> getGenresFromRepository(Set<Genre> genres) {
         final List<Long> genreIds = genres.stream().map(Genre::getId).toList();

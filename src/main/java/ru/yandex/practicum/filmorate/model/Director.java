@@ -4,7 +4,6 @@ import lombok.*;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(of = "id")
 public class Director {

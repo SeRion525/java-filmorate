@@ -16,7 +16,7 @@ import java.util.*;
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
-            directors.director_id as director_id, directors.name as director_name FROM films
+            directors.director_id, directors.name as director_name FROM films
             LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
             LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
             LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id
@@ -189,16 +189,13 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     @Override
-    public List<Film> filmsByDirector(long directorId, String sortBy) {
-        List<Film> films;
-        if (sortBy.equals("year".toLowerCase())) {
-            films = new ArrayList<>(findMany(GET_FILMS_BY_DIRECTOR_BY_YEAR, new MapSqlParameterSource("directorId", directorId)));
-            return films;
-        }
+    public List<Film> getDirectorFilmsSortedByYear(long directorId) {
+        return findMany(GET_FILMS_BY_DIRECTOR_BY_YEAR, new MapSqlParameterSource("directorId", directorId));
+    }
 
-        films = new ArrayList<>(findMany(GET_FILMS_BY_DIRECTOR_BY_LIKES, new MapSqlParameterSource("directorId", directorId)));
-
-        return films;
+    @Override
+    public List<Film> getDirectorFilmsSortedByLikes(long directorId) {
+        return findMany(GET_FILMS_BY_DIRECTOR_BY_LIKES, new MapSqlParameterSource("directorId", directorId));
     }
 
     private MapSqlParameterSource toMapSqlParameterSource(Film film) {

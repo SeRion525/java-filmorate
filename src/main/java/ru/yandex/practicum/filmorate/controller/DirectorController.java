@@ -41,8 +41,7 @@ public class DirectorController {
     @PutMapping
     @Validated({Default.class, Update.class})
     public Director updateDirector(@RequestBody Director director) {
-        directorService.update(director);
-        return directorService.getDirectorById(director.getId());
+        return directorService.update(director);
     }
 
     @DeleteMapping("/{id}")
