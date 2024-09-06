@@ -24,7 +24,7 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     private static final String DELETE_FILM_GENRES_BY_FILM_ID_QUERY = """
             DELETE FROM films_genres WHERE film_id = :filmId;
             """;
-
+    
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name FROM films
             LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
