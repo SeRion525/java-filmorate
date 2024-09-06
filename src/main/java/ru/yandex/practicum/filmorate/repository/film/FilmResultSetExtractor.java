@@ -3,13 +3,13 @@ package ru.yandex.practicum.filmorate.repository.film;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class FilmResultSetExtractor extends AbstractFilmResultExtractor implements ResultSetExtractor<Film> {
@@ -17,6 +17,7 @@ public class FilmResultSetExtractor extends AbstractFilmResultExtractor implemen
     public Film extractData(ResultSet resultSet) throws SQLException, DataAccessException {
         Film currentFilm = null;
         Set<Genre> genres = new LinkedHashSet<>();
+        Set<Director> directors = new LinkedHashSet<>();
 
         while (resultSet.next()) {
             if (currentFilm == null) {
@@ -27,10 +28,15 @@ public class FilmResultSetExtractor extends AbstractFilmResultExtractor implemen
             if (genre != null) {
                 genres.add(genre);
             }
-        }
 
+            Director director = mapDirector(resultSet);
+            if (director != null) {
+                directors.add(director);
+            }
+        }
         if (currentFilm != null) {
             currentFilm.setGenres(genres);
+            currentFilm.setDirectors(directors);
         }
 
         return currentFilm;

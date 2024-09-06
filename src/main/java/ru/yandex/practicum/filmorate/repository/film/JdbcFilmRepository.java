@@ -5,28 +5,33 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.JdbcBaseRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
     private static final String GET_ALL_QUERY = """
-            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name FROM films
-            LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
-            LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
-            LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id;
-            """;
-
-    private static final String GET_FILM_BY_ID = """
-            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name FROM films
+            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
+            directors.director_id, directors.name as director_name FROM films
             LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
             LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
             LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id
+            LEFT OUTER JOIN director_films ON director_films.film_id = films.film_id
+            LEFT OUTER JOIN directors ON directors.director_id = director_films.director_id;
+            """;
+
+    private static final String GET_FILM_BY_ID = """
+            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
+            directors.director_id, directors.name as director_name FROM films
+            LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
+            LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
+            LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id
+            LEFT OUTER JOIN director_films ON director_films.film_id = films.film_id
+            LEFT OUTER JOIN directors ON directors.director_id = director_films.director_id
             WHERE films.film_id = :filmId;
             """;
 
@@ -58,12 +63,20 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
     private static final String GET_LIKES_BY_FILM_ID_QUERY = "SELECT COUNT(*) AS likes_count FROM likes WHERE film_id = :filmId";
 
+    private static final String INSERT_DIRECTOR_FILMS_BY_IDS = """
+            INSERT INTO director_films(film_id, director_id)
+            VALUES (:filmId, :directorId);
+            """;
+
     private static final String GET_MOST_POPULAR_QUERY = """
-            SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME
+            SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME,
+            DIRECTORS.DIRECTOR_ID, DIRECTORS.NAME as DIRECTOR_NAME
             FROM FILMS
             LEFT OUTER JOIN MPA ON MPA.MPA_ID = FILMS.MPA_ID
             LEFT OUTER JOIN FILMS_GENRES ON FILMS_GENRES.FILM_ID = FILMS.FILM_ID
             LEFT OUTER JOIN GENRES ON GENRES.GENRE_ID = FILMS_GENRES.GENRE_ID
+            LEFT OUTER JOIN DIRECTOR_FILMS ON DIRECTOR_FILMS.FILM_ID = FILMS.FILM_ID
+            LEFT OUTER JOIN DIRECTORS ON DIRECTORS.DIRECTOR_ID = DIRECTOR_FILMS.FILM_ID
             JOIN (SELECT films.film_id, COUNT(likes.film_id) AS likes_count FROM films
                 LEFT OUTER JOIN likes ON likes.film_id = films.film_id
                 GROUP BY films.film_id
@@ -71,6 +84,35 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                 LIMIT :count
             ) AS popular(film_id, likes_count) ON films.film_id = popular.film_id
             ORDER BY popular.likes_count DESC, films.name ASC;
+            """;
+
+    private static final String GET_FILMS_BY_DIRECTOR_BY_YEAR = """
+            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
+            directors.director_id, directors.name as director_name FROM films
+            LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
+            LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
+            LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id
+            LEFT OUTER JOIN director_films ON director_films.film_id = films.film_id
+            LEFT OUTER JOIN directors ON directors.director_id = director_films.director_id
+            WHERE director_films.director_id = :directorId
+            GROUP BY films.film_id, films.release_date
+            ORDER BY films.release_date;
+            """;
+
+    private static final String GET_FILMS_BY_DIRECTOR_BY_LIKES = """
+            SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
+                   directors.director_id, directors.name as director_name FROM films
+            LEFT OUTER JOIN mpa ON mpa.mpa_id = films.mpa_id
+            LEFT OUTER JOIN films_genres ON films_genres.film_id = films.film_id
+            LEFT OUTER JOIN genres ON genres.genre_id = films_genres.genre_id
+            LEFT OUTER JOIN director_films ON director_films.film_id = films.film_id
+            LEFT OUTER JOIN directors ON directors.director_id = director_films.director_id
+            LEFT OUTER JOIN likes on films.film_id = likes.film_id
+            WHERE director_films.director_id = :directorId
+            GROUP BY films.film_id, likes.film_id IN (
+                SELECT film_id from likes
+                )
+            ORDER BY COUNT(likes.film_id) DESC;
             """;
 
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
@@ -82,6 +124,10 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     public Film save(Film film) {
         long id = insert(INSERT_FILM_QUERY, toMapSqlParameterSource(film));
         film.setId(id);
+
+        if (film.getDirectors() != null || !film.getDirectors().isEmpty()) {
+            updateDirectorsFilm(film);
+        }
 
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             return film;
@@ -95,6 +141,10 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     public void update(Film newFilm) {
         MapSqlParameterSource params = toMapSqlParameterSource(newFilm);
         update(UPDATE_FILM_QUERY, params);
+
+        if (newFilm.getDirectors() != null) {
+            updateDirectorsFilm(newFilm);
+        }
 
         if (newFilm.getGenres() == null || newFilm.getGenres().isEmpty()) {
             return;
@@ -138,6 +188,16 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
         return findMany(GET_MOST_POPULAR_QUERY, new MapSqlParameterSource("count", count));
     }
 
+    @Override
+    public List<Film> getDirectorFilmsSortedByYear(long directorId) {
+        return findMany(GET_FILMS_BY_DIRECTOR_BY_YEAR, new MapSqlParameterSource("directorId", directorId));
+    }
+
+    @Override
+    public List<Film> getDirectorFilmsSortedByLikes(long directorId) {
+        return findMany(GET_FILMS_BY_DIRECTOR_BY_LIKES, new MapSqlParameterSource("directorId", directorId));
+    }
+
     private MapSqlParameterSource toMapSqlParameterSource(Film film) {
         MapSqlParameterSource params = new MapSqlParameterSource();
 
@@ -166,5 +226,31 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                 .map(genre -> new MapSqlParameterSource("filmId", film.getId())
                         .addValue("genreId", genre.getId()))
                 .toArray(SqlParameterSource[]::new);
+    }
+
+    private SqlParameterSource[] getFilmIdAndDirectorIdsSqlParameters(Film film) {
+        Set<Director> directors = film.getDirectors();
+
+        return directors.stream()
+                .map(director -> new MapSqlParameterSource("filmId", film.getId())
+                        .addValue("directorId", director.getId()))
+                .toArray(SqlParameterSource[]::new);
+    }
+
+    private void updateDirectorsFilm(Film film) {
+        addDirectorForCurrentFilm(film);
+    }
+
+    private void addDirectorForCurrentFilm(Film film) {
+        if (Objects.isNull(film.getDirectors())) {
+            return;
+        }
+
+        if (film.getDirectors().size() == 1) {
+            update(INSERT_DIRECTOR_FILMS_BY_IDS, new MapSqlParameterSource("filmId", film.getId())
+                    .addValue("directorId", film.getDirectors().stream().toList().getFirst().getId()));
+            return;
+        }
+        jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
     }
 }
