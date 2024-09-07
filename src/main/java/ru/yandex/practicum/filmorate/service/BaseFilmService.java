@@ -5,14 +5,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.feed.Event;
+import ru.yandex.practicum.filmorate.model.feed.EventType;
+import ru.yandex.practicum.filmorate.model.feed.Operation;
 import ru.yandex.practicum.filmorate.repository.director.DirectorRepository;
+import ru.yandex.practicum.filmorate.repository.event.EventRepository;
 import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.genre.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
-import java.util.*;
+import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
 
@@ -21,11 +32,13 @@ import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_US
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
     public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
     private final DirectorRepository directorRepository;
+    private final EventRepository eventRepository;
 
     @Override
     public List<Film> getFilms() {
@@ -57,8 +70,7 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public Film updateFilm(Film newFilm) {
-        final Film savedFilm = filmRepository.getById(newFilm.getId())
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + newFilm.getId()));
+        final Film savedFilm = getFilmById(newFilm.getId());
 
         if (newFilm.getMpa() != null) {
             savedFilm.setMpa(getMpaFromRepository(newFilm.getMpa().getId()));
@@ -85,20 +97,22 @@ public class BaseFilmService implements FilmService {
     public void addLike(long filmId, long userId) {
         User user = userRepository.getById(userId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
-        Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + filmId));
+        Film film = getFilmById(filmId);
 
         filmRepository.addLike(film.getId(), user.getId());
+
+        eventRepository.save(createEvent(Operation.ADD, userId, filmId));
     }
 
     @Override
     public void removeLike(long filmId, long userId) {
         User user = userRepository.getById(userId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
-        Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_FILM + filmId));
+        Film film = getFilmById(filmId);
 
         filmRepository.deleteLike(film.getId(), user.getId());
+
+        eventRepository.save(createEvent(Operation.REMOVE, userId, filmId));
     }
 
     @Override
@@ -143,5 +157,15 @@ public class BaseFilmService implements FilmService {
         }
 
         return savedDirectors;
+    }
+
+    private Event createEvent(Operation operation, Long userId, Long entityId) {
+        Event event = new Event();
+        event.setEventType(EventType.LIKE);
+        event.setOperation(operation);
+        event.setUserId(userId);
+        event.setEntityId(entityId);
+        event.setTimestamp(Instant.now().toEpochMilli());
+        return event;
     }
 }
