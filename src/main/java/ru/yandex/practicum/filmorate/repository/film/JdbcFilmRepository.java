@@ -206,8 +206,8 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     @Override
-    public List<Film> getMostPopular(int count) {
-        return findMany(GET_MOST_POPULAR_QUERY, new MapSqlParameterSource("count", count));
+    public List<Film> getMostPopular(Integer count, Integer year, Long genreId) {
+        return findMany(createQueryString(count, year, genreId), new MapSqlParameterSource());
     }
 
     @Override
@@ -286,5 +286,27 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             return;
         }
         jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
+    }
+
+    private String createQueryString(Integer count, Integer year, Long genreId) {
+        StringBuilder whereCondition = new StringBuilder(" WHERE ");
+        StringBuilder query = new StringBuilder(GET_MOST_POPULAR_BASE_QUERY);
+
+        if (year != null) {
+            query.append(whereCondition).append("YEAR(films.release_date) = ").append(year);
+            whereCondition.replace(0,whereCondition.length() - 1," AND ");
+        }
+
+        if (genreId != null) {
+            query.append(whereCondition).append("films_genres.genre_id = ").append(genreId);
+        }
+
+        query.append(" GROUP BY films.film_id\n").append("ORDER BY count(likes.film_id) DESC\n");
+
+        if (count != null) {
+            query.append(" Limit ").append(count);
+        }
+
+        return  query.toString();
     }
 }

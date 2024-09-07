@@ -18,7 +18,7 @@ public interface FilmService {
 
     void removeLike(long filmId, long userId);
 
-    List<Film> getMostPopular(int count, Integer year, Long genreId);
+    List<Film> getMostPopular(Integer count, Integer year, Long genreId);
 
     void deleteFilm(long filmId);
 

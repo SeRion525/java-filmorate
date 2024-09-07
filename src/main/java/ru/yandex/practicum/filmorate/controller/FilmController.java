@@ -68,7 +68,7 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> getMostPopular(
-            @RequestParam(defaultValue = "1000") @Positive int count,
+            @RequestParam(required = false) Integer count,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Long genreId
             ) {
