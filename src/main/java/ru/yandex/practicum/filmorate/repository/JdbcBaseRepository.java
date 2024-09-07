@@ -40,8 +40,8 @@ public class JdbcBaseRepository<T> {
         }
     }
 
-    protected void merge(String query, SqlParameterSource params) {
-        jdbc.update(query, params);
+    protected int merge(String query, SqlParameterSource params) {
+        return jdbc.update(query, params);
     }
 
     protected long insert(String query, SqlParameterSource params) {
