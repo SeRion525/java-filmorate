@@ -19,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
     public static final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
+
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
 
@@ -53,6 +54,14 @@ public class BaseUserService implements UserService {
     }
 
     @Override
+    public void deleteUser(long userId) {
+        if (userRepository.getById(userId).isEmpty()) {
+            throw new NotFoundException("Пользователь с данным ID не найден.");
+        }
+        userRepository.delete(userId);
+    }
+  
+    @Override
     public List<User> getFriends(long userId) {
         User user = getUserById(userId);
         return userRepository.getFriends(user.getId());
@@ -82,7 +91,7 @@ public class BaseUserService implements UserService {
         User otherUser = getUserById(otherId);
         return userRepository.getCommonFriends(user.getId(), otherUser.getId());
     }
-
+  
     @Override
     public List<Event> getUserFeed(long userId) {
         User user = getUserById(userId);

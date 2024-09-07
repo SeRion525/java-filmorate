@@ -92,6 +92,14 @@ public class BaseFilmService implements FilmService {
         filmRepository.update(savedFilm);
         return savedFilm;
     }
+    
+    @Override
+    public void deleteFilm(long filmId) {
+        if (filmRepository.getById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильм с данным ID не найден.");
+        }
+        filmRepository.delete(filmId);
+    }
 
     @Override
     public void addLike(long filmId, long userId) {

@@ -84,7 +84,13 @@ public class UserController {
         }
         return userService.getCommonFriends(id, otherId);
     }
-
+  
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable @Positive long userId) {
+        userService.deleteUser(userId);
+    }
+  
     @GetMapping("{id}/feed")
     public List<Event> getUserFeed(@PathVariable long id) {
         return userService.getUserFeed(id);

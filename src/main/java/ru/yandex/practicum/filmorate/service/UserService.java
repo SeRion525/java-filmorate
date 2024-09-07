@@ -13,6 +13,8 @@ public interface UserService {
     User save(User user);
 
     User update(User newUser);
+  
+    void deleteUser(long userId);
 
     List<User> getFriends(long userId);
 
