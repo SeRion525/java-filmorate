@@ -26,6 +26,12 @@ public interface FilmRepository {
 
     void delete(long filmId);
 
+    List<Film> getMostPopularByGenre(int count, long genreId);
+
+    List<Film> getMostPopularByYear(int count, int year);
+
+    List<Film> getMostPopularByGenreAndYear(int count, int year, long genreId);
+
     List<Film> getDirectorFilmsSortedByYear(long directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(long directorId);
