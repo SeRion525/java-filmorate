@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
     public static final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
+
     private final UserRepository userRepository;
 
     @Override
@@ -79,4 +80,13 @@ public class BaseUserService implements UserService {
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + otherId));
         return userRepository.getCommonFriends(user.getId(), otherUser.getId());
     }
+
+    public void deleteUser(long userId) {
+        if (userRepository.getById(userId).isEmpty()) {
+            throw new NotFoundException("Пользователь с данным ID не найден.");
+        }
+        userRepository.delete(userId);
+    }
+
+
 }

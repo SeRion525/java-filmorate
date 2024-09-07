@@ -21,6 +21,7 @@ import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_US
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
     public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
@@ -143,5 +144,12 @@ public class BaseFilmService implements FilmService {
         }
 
         return savedDirectors;
+    }
+
+    public void deleteFilm(long filmId) {
+        if (filmRepository.getById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильм с данным ID не найден.");
+        }
+        filmRepository.delete(filmId);
     }
 }
