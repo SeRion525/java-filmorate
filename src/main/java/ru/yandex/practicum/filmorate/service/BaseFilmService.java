@@ -21,9 +21,7 @@ import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
 
@@ -62,7 +60,7 @@ public class BaseFilmService implements FilmService {
         }
 
         if (film.getDirectors() != null) {
-            film.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(film.getDirectors())));
+            film.setDirectors(new LinkedHashSet<>(getDirectorsFromRepository(film.getDirectors())));
         }
 
         return filmRepository.save(film);
@@ -81,7 +79,7 @@ public class BaseFilmService implements FilmService {
         }
 
         if (newFilm.getDirectors() != null) {
-            savedFilm.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(newFilm.getDirectors())));
+            savedFilm.setDirectors(new LinkedHashSet<>(getDirectorsFromRepository(newFilm.getDirectors())));
         }
 
         savedFilm.setName(newFilm.getName());
@@ -151,7 +149,6 @@ public class BaseFilmService implements FilmService {
     private Mpa getMpaFromRepository(long mpaId) {
         return mpaRepository.getById(mpaId)
                 .orElseThrow(() -> new ValidationException("Не найден рейтинг с ID = " + mpaId));
-
     }
 
     private List<Director> getDirectorFromRepository(Set<Director> directors) {
@@ -159,7 +156,7 @@ public class BaseFilmService implements FilmService {
         final List<Director> savedDirectors = directorRepository.getByIds(directorIds);
 
         if (directorIds.size() != savedDirectors.size()) {
-            throw new ValidationException("Режиссёр не найдены");
+            throw new ValidationException("Режиссёры не найдены");
         }
 
         return savedDirectors;
@@ -171,7 +168,6 @@ public class BaseFilmService implements FilmService {
         }
         filmRepository.delete(filmId);
     }
-
 
     private Collection<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
         Set<Film> currentUserFilms = usersLikedFilmsMap.remove(userId);
@@ -210,6 +206,7 @@ public class BaseFilmService implements FilmService {
         }
 
         return recommendationFilms;
+    }
 
     private Event createEvent(Operation operation, Long userId, Long entityId) {
         Event event = new Event();
@@ -221,3 +218,4 @@ public class BaseFilmService implements FilmService {
         return event;
     }
 }
+
