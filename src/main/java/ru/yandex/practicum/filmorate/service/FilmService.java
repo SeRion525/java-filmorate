@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface FilmService {
@@ -22,4 +23,6 @@ public interface FilmService {
     void deleteFilm(long filmId);
 
     List<Film> filmsByDirector(long directorId, String sortBy);
+
+    Collection<Film> getRecommendedFilms(Long userId);
 }

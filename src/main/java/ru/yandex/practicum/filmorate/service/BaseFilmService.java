@@ -21,17 +21,20 @@ import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
     public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+    public static final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
 
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
@@ -121,6 +124,12 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
+    public Collection<Film> getRecommendedFilms(Long userId) {
+        Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
+        return getFilms(userId, usersLikedFilmsMap);
+    }
+
+    @Override
     public List<Film> filmsByDirector(long directorId, String sortBy) {
         if (sortBy.equalsIgnoreCase("year")) {
             return filmRepository.getDirectorFilmsSortedByYear(directorId);
@@ -145,7 +154,6 @@ public class BaseFilmService implements FilmService {
     private Mpa getMpaFromRepository(long mpaId) {
         return mpaRepository.getById(mpaId)
                 .orElseThrow(() -> new ValidationException("Не найден рейтинг с ID = " + mpaId));
-
     }
 
     private List<Director> getDirectorFromRepository(Set<Director> directors) {
@@ -166,9 +174,48 @@ public class BaseFilmService implements FilmService {
         filmRepository.delete(filmId);
     }
 
+    private Collection<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
+        Set<Film> currentUserFilms = usersLikedFilmsMap.remove(userId);
+
+        if (currentUserFilms == null) {
+            return Collections.emptySet();
+        }
+
+        Set<Long> mostSimilarUserIds = new HashSet<>();
+        int maxCommonLikes = 0;
+
+        for (Map.Entry<Long, Set<Film>> entry : usersLikedFilmsMap.entrySet()) {
+            Long id = entry.getKey();
+            Set<Film> films = new HashSet<>(entry.getValue());
+            films.retainAll(currentUserFilms);
+
+            if (films.size() > maxCommonLikes) {
+                maxCommonLikes = films.size();
+                mostSimilarUserIds.clear();
+                mostSimilarUserIds.add(id);
+            } else if (films.size() == maxCommonLikes && !films.isEmpty()) {
+                mostSimilarUserIds.add(id);
+            }
+        }
+
+        if (mostSimilarUserIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<Film> recommendationFilms = new HashSet<>();
+
+        for (Long id : mostSimilarUserIds) {
+            Set<Film> userFilms = new HashSet<>(usersLikedFilmsMap.get(id));
+            userFilms.removeAll(currentUserFilms);
+            recommendationFilms.addAll(userFilms);
+        }
+
+        return recommendationFilms;
+    }
+
     private Event createEvent(Operation operation, Long userId, Long entityId) {
         Event event = new Event();
-        event.setEventType(EventType.LIKE);
+        event.setEventType(EventType.LIKE); // Changed from FRIEND to LIKE
         event.setOperation(operation);
         event.setUserId(userId);
         event.setEntityId(entityId);
@@ -176,3 +223,5 @@ public class BaseFilmService implements FilmService {
         return event;
     }
 }
+
+

@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.repository.film;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface FilmRepository {
     Film save(Film film);
@@ -27,5 +29,7 @@ public interface FilmRepository {
     List<Film> getDirectorFilmsSortedByYear(long directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(long directorId);
+
+    Map<Long, Set<Film>> findAllUsersWithLikedFilms();
 
 }
