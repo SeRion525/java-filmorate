@@ -119,8 +119,17 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
-    public List<Film> getMostPopular(int count) {
-        return filmRepository.getMostPopular(count);
+    public List<Film> getMostPopular(Integer count, Integer year, Long genreId) {
+        if (count != null && count < 0) {
+            throw new ValidationException("Количество возвращаемых записей не может быть меньше 0");
+        }
+
+        if (genreId != null) {
+            genreRepository.getById(genreId)
+                    .orElseThrow(() -> new NotFoundException("Жанр не найден. Id = " + genreId));
+        }
+
+        return filmRepository.getMostPopular(count, year, genreId);
     }
 
     @Override
