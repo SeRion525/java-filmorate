@@ -12,9 +12,8 @@ import ru.yandex.practicum.filmorate.model.feed.Operation;
 import ru.yandex.practicum.filmorate.repository.event.EventRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
-
-import java.util.Collection;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -100,10 +99,12 @@ public class BaseUserService implements UserService {
         userRepository.getById(id)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + id));
         return filmService.getRecommendedFilms(id);
+    }
+
+    @Override
     public List<Event> getUserFeed(long userId) {
         User user = getUserById(userId);
         return eventRepository.getByUserId(user.getId());
-
     }
 
     private Event createEvent(Operation operation, Long userId, Long entityId) {
