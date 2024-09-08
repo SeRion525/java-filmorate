@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -16,6 +19,7 @@ public class BaseUserService implements UserService {
     public static final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
 
     private final UserRepository userRepository;
+    private final FilmService filmService;
 
     @Override
     public List<User> getUsers() {
@@ -88,5 +92,9 @@ public class BaseUserService implements UserService {
         userRepository.delete(userId);
     }
 
+    @Override
+    public Collection<Film> getUserRecommendations(long id) {
+        return filmService.getRecommendedFilms(id);
+    }
 
 }

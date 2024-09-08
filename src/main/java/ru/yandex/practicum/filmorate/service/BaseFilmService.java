@@ -152,4 +152,49 @@ public class BaseFilmService implements FilmService {
         }
         filmRepository.delete(filmId);
     }
+@Override
+    public Collection<Film> getRecommendedFilms (Long userId) {
+        Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
+        return getFilms(userId, usersLikedFilmsMap);
+    }
+
+    private Collection<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
+        Set<Film> currentUserFilms = usersLikedFilmsMap.remove(userId);
+
+        if (currentUserFilms == null) {
+            return Collections.emptySet();
+        }
+
+        Set<Long> mostSimilarUserIds = new HashSet<>();
+        int maxCommonLikes = 0;
+
+        for (Map.Entry<Long, Set<Film>> entry : usersLikedFilmsMap.entrySet()) {
+            Long user = entry.getKey();
+            Set<Film> films = new HashSet<>(entry.getValue());
+            films.retainAll(currentUserFilms);
+
+            if (films.size() > maxCommonLikes) {
+                maxCommonLikes = films.size();
+                mostSimilarUserIds.clear();
+                mostSimilarUserIds.add(userId);
+            } else if (films.size() == maxCommonLikes && !films.isEmpty()) {
+                mostSimilarUserIds.add(user);
+            }
+        }
+
+        if (mostSimilarUserIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<Film> recommendationFilms = new HashSet<>();
+
+        for (Long id : mostSimilarUserIds) {
+            Set<Film> userFilms = new HashSet<>(usersLikedFilmsMap.get(id));
+            userFilms.removeAll(currentUserFilms);
+            recommendationFilms.addAll(userFilms);
+        }
+
+        return recommendationFilms;
+    }
 }
+//getUserRecommendations

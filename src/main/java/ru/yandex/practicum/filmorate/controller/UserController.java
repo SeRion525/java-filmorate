@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
 import ru.yandex.practicum.filmorate.validator.group.Update;
 
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -89,4 +92,10 @@ public class UserController {
     public void deleteUser(@PathVariable @Positive long userId) {
         userService.deleteUser(userId);
     }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<Film> getRecommendations(@PathVariable @Positive long id) {
+       return userService.getUserRecommendations(id);
+    }
 }
+

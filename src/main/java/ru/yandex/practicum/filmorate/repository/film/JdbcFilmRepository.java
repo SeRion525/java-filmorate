@@ -15,6 +15,7 @@ import java.util.*;
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
 
+    private final ResultSetExtractor<Map<Long, Set<Film>>> extractorToMany = new FilmMapResultSetExtractor();
 
     private static final String DELETE_FILM_QUERY = """
             DELETE FROM films WHERE film_id = :filmId;
@@ -92,6 +93,20 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                 LIMIT :count
             ) AS popular(film_id, likes_count) ON films.film_id = popular.film_id
             ORDER BY popular.likes_count DESC, films.name ASC;
+            """;
+
+    private static final String GET_ALL_USERS_LIKED_FILMS_QUERY = """
+            SELECT l.user_id, f.*, m.id AS mpa_id, m.name AS mpa_name,
+                       g.id AS genre_id, g.name AS genre_name,
+                       d.id AS director_id, d.name AS director_name
+                FROM likes l
+                JOIN films f ON l.film_id = f.id
+                LEFT JOIN film_mpa fm ON f.id = fm.film_id
+                LEFT JOIN mpa m ON fm.mpa_id = m.id
+                LEFT JOIN film_genres fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                LEFT JOIN film_directors fd ON f.id = fd.film_id
+                LEFT JOIN directors d ON fd.director_id = d.id
             """;
 
     private static final String GET_FILMS_BY_DIRECTOR_BY_YEAR = """
@@ -266,5 +281,10 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             return;
         }
         jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
+    }
+@Override
+    public Map<Long, Set<Film>> findAllUsersWithLikedFilms() {
+
+        return jdbc.query(GET_ALL_USERS_LIKED_FILMS_QUERY, extractorToMany);
     }
 }
