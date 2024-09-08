@@ -29,6 +29,7 @@ public interface FilmRepository {
     List<Film> getDirectorFilmsSortedByYear(long directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(long directorId);
+
     Map<Long, Set<Film>> findAllUsersWithLikedFilms();
 
 }
