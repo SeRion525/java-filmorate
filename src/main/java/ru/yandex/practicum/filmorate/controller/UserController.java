@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.feed.Event;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
@@ -87,6 +88,10 @@ public class UserController {
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable @Positive long id) {
         return userService.getUserRecommendations(id);
+
+    @GetMapping("{id}/feed")
+    public List<Event> getUserFeed(@PathVariable long id) {
+        return userService.getUserFeed(id);
     }
 }
 
