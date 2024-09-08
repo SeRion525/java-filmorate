@@ -21,7 +21,6 @@ public class FilmMapResultSetExtractor extends AbstractFilmResultExtractor
         Film currentFilm = null;
         Set<Genre> genres = new LinkedHashSet<>();
         Set<Director> directors = new LinkedHashSet<>();
-
         long currentUserId = -1;
 
         while (rs.next()) {
