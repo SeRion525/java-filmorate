@@ -34,6 +34,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
     public static final String NOT_FOUND_FILM = "Не найден фильм с ID = ";
+    public static final String NOT_FOUND_USER = "Не найден пользователь с ID = ";
 
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
