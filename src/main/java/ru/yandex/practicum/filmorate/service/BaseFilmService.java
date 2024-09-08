@@ -109,8 +109,6 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public Collection<Film> getRecommendedFilms(Long userId) {
-        userRepository.getById(userId)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
         Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
         return getFilms(userId, usersLikedFilmsMap);
     }

@@ -93,9 +93,8 @@ public class BaseUserService implements UserService {
 
     @Override
     public Collection<Film> getUserRecommendations(long id) {
-        /*if (userRepository.getById(id).isEmpty()) {
-            throw new NotFoundException("Пользователь с данным ID не найден.");
-        }*/
+        userRepository.getById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + id));
         return filmService.getRecommendedFilms(id);
     }
 
