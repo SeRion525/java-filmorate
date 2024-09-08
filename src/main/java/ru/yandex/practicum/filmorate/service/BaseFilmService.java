@@ -21,9 +21,13 @@ import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
-import java.util.*;
-
-import static ru.yandex.practicum.filmorate.service.BaseUserService.NOT_FOUND_USER;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -60,7 +64,7 @@ public class BaseFilmService implements FilmService {
         }
 
         if (film.getDirectors() != null) {
-            film.setDirectors(new LinkedHashSet<>(getDirectorsFromRepository(film.getDirectors())));
+            film.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(film.getDirectors())));
         }
 
         return filmRepository.save(film);
@@ -79,7 +83,7 @@ public class BaseFilmService implements FilmService {
         }
 
         if (newFilm.getDirectors() != null) {
-            savedFilm.setDirectors(new LinkedHashSet<>(getDirectorsFromRepository(newFilm.getDirectors())));
+            savedFilm.setDirectors(new LinkedHashSet<>(getDirectorFromRepository(newFilm.getDirectors())));
         }
 
         savedFilm.setName(newFilm.getName());
@@ -156,7 +160,7 @@ public class BaseFilmService implements FilmService {
         final List<Director> savedDirectors = directorRepository.getByIds(directorIds);
 
         if (directorIds.size() != savedDirectors.size()) {
-            throw new ValidationException("Режиссёры не найдены");
+            throw new ValidationException("Режиссёр не найдены");
         }
 
         return savedDirectors;
@@ -210,7 +214,7 @@ public class BaseFilmService implements FilmService {
 
     private Event createEvent(Operation operation, Long userId, Long entityId) {
         Event event = new Event();
-        event.setEventType(EventType.LIKE);
+        event.setEventType(EventType.LIKE); // Changed from FRIEND to LIKE
         event.setOperation(operation);
         event.setUserId(userId);
         event.setEntityId(entityId);
@@ -218,4 +222,5 @@ public class BaseFilmService implements FilmService {
         return event;
     }
 }
+
 
