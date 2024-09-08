@@ -96,17 +96,16 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             """;
 
     private static final String GET_ALL_USERS_LIKED_FILMS_QUERY = """
-            SELECT l.user_id, f.*, m.id AS mpa_id, m.name AS mpa_name,
-                       g.id AS genre_id, g.name AS genre_name,
-                       d.id AS director_id, d.name AS director_name
-                FROM likes l
-                JOIN films f ON l.film_id = f.id
-                LEFT JOIN film_mpa fm ON f.id = fm.film_id
-                LEFT JOIN mpa m ON fm.mpa_id = m.id
-                LEFT JOIN film_genres fg ON f.id = fg.film_id
-                LEFT JOIN genres g ON fg.genre_id = g.id
-                LEFT JOIN film_directors fd ON f.id = fd.film_id
-                LEFT JOIN directors d ON fd.director_id = d.id
+            SELECT f.*, l.user_id, m.mpa_id, m.name AS mpa_name,
+                   g.genre_id AS genre_id, g.name AS genre_name,
+                   d.director_id AS director_id, d.name AS director_name
+            FROM likes l
+            JOIN films f ON l.film_id = f.film_id
+            LEFT OUTER JOIN mpa m ON f.mpa_id = m.mpa_id
+            LEFT OUTER JOIN films_genres fg ON f.film_id = fg.film_id
+            LEFT OUTER JOIN genres g ON fg.genre_id = g.genre_id
+            LEFT OUTER JOIN director_films df ON f.film_id = df.film_id
+            LEFT OUTER JOIN directors d ON df.director_id = d.director_id;
             """;
 
     private static final String GET_FILMS_BY_DIRECTOR_BY_YEAR = """
@@ -212,6 +211,12 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     @Override
+    public Map<Long, Set<Film>> findAllUsersWithLikedFilms() {
+
+        return jdbc.query(GET_ALL_USERS_LIKED_FILMS_QUERY, extractorToMany);
+    }
+
+    @Override
     public List<Film> getDirectorFilmsSortedByYear(long directorId) {
         return findMany(GET_FILMS_BY_DIRECTOR_BY_YEAR, new MapSqlParameterSource("directorId", directorId));
     }
@@ -281,10 +286,5 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             return;
         }
         jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
-    }
-@Override
-    public Map<Long, Set<Film>> findAllUsersWithLikedFilms() {
-
-        return jdbc.query(GET_ALL_USERS_LIKED_FILMS_QUERY, extractorToMany);
     }
 }

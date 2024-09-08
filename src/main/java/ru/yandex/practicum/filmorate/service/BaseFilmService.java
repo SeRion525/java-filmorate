@@ -108,6 +108,14 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
+    public Collection<Film> getRecommendedFilms(Long userId) {
+        userRepository.getById(userId)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + userId));
+        Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
+        return getFilms(userId, usersLikedFilmsMap);
+    }
+
+    @Override
     public List<Film> filmsByDirector(long directorId, String sortBy) {
         if (sortBy.equalsIgnoreCase("year")) {
             return filmRepository.getDirectorFilmsSortedByYear(directorId);
@@ -152,11 +160,6 @@ public class BaseFilmService implements FilmService {
         }
         filmRepository.delete(filmId);
     }
-@Override
-    public Collection<Film> getRecommendedFilms (Long userId) {
-        Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
-        return getFilms(userId, usersLikedFilmsMap);
-    }
 
     private Collection<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
         Set<Film> currentUserFilms = usersLikedFilmsMap.remove(userId);
@@ -169,16 +172,16 @@ public class BaseFilmService implements FilmService {
         int maxCommonLikes = 0;
 
         for (Map.Entry<Long, Set<Film>> entry : usersLikedFilmsMap.entrySet()) {
-            Long user = entry.getKey();
+            Long id = entry.getKey();
             Set<Film> films = new HashSet<>(entry.getValue());
             films.retainAll(currentUserFilms);
 
             if (films.size() > maxCommonLikes) {
                 maxCommonLikes = films.size();
                 mostSimilarUserIds.clear();
-                mostSimilarUserIds.add(userId);
+                mostSimilarUserIds.add(id);
             } else if (films.size() == maxCommonLikes && !films.isEmpty()) {
-                mostSimilarUserIds.add(user);
+                mostSimilarUserIds.add(id);
             }
         }
 
@@ -197,4 +200,3 @@ public class BaseFilmService implements FilmService {
         return recommendationFilms;
     }
 }
-//getUserRecommendations
