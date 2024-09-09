@@ -22,7 +22,7 @@ public interface FilmRepository {
 
     int getLikesByFilmId(long filmId);
 
-    List<Film> getMostPopular(int count);
+    List<Film> getMostPopular(Integer count, Integer year, Long genreId);
 
     void delete(long filmId);
 

@@ -206,8 +206,8 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     @Override
-    public List<Film> getMostPopular(int count) {
-        return findMany(GET_MOST_POPULAR_QUERY, new MapSqlParameterSource("count", count));
+    public List<Film> getMostPopular(Integer count, Integer year, Long genreId) {
+        return findMany(createQueryString(count, year, genreId), new MapSqlParameterSource());
     }
 
     @Override
@@ -286,5 +286,41 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             return;
         }
         jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
+    }
+
+    private String createQueryString(Integer count, Integer year, Long genreId) {
+        StringBuilder whereCondition = new StringBuilder(" WHERE ");
+        StringBuilder query = new StringBuilder("""
+                SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME,
+                DIRECTORS.DIRECTOR_ID, DIRECTORS.NAME as DIRECTOR_NAME
+                FROM FILMS
+                LEFT OUTER JOIN MPA ON MPA.MPA_ID = FILMS.MPA_ID
+                LEFT OUTER JOIN FILMS_GENRES ON FILMS_GENRES.FILM_ID = FILMS.FILM_ID
+                LEFT OUTER JOIN GENRES ON GENRES.GENRE_ID = FILMS_GENRES.GENRE_ID
+                LEFT OUTER JOIN DIRECTOR_FILMS ON DIRECTOR_FILMS.FILM_ID = FILMS.FILM_ID
+                LEFT OUTER JOIN DIRECTORS ON DIRECTORS.DIRECTOR_ID = DIRECTOR_FILMS.FILM_ID
+                JOIN (SELECT films.film_id, COUNT(likes.film_id) AS likes_count FROM films
+                    LEFT OUTER JOIN likes ON likes.film_id = films.film_id
+                    GROUP BY films.film_id
+                    ORDER BY likes_count DESC
+                """);
+
+        if (count != null) {
+            query.append(" Limit ").append(count);
+        }
+        query.append(") AS popular(film_id, likes_count) ON films.film_id = popular.film_id");
+
+        if (year != null) {
+            query.append(whereCondition).append("YEAR(films.release_date) = ").append(year);
+            whereCondition.replace(0,whereCondition.length() - 1," AND ");
+        }
+
+        if (genreId != null) {
+            query.append(whereCondition).append("films_genres.genre_id = ").append(genreId);
+        }
+
+        query.append(" ORDER BY popular.likes_count DESC, films.name ASC;");
+
+        return  query.toString();
     }
 }
