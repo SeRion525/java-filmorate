@@ -17,13 +17,14 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/directors")
+@Validated
 public class DirectorController {
 
     private final DirectorService directorService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Validated({Default.class, Create.class})
+    @Validated(Default.class)
     public Director save(@Valid @RequestBody Director director) {
         return directorService.save(director);
     }
@@ -40,7 +41,7 @@ public class DirectorController {
 
     @PutMapping
     @Validated({Default.class, Update.class})
-    public Director updateDirector(@RequestBody Director director) {
+    public Director updateDirector(@RequestBody @Valid Director director) {
         return directorService.update(director);
     }
 
