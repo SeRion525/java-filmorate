@@ -1,8 +1,13 @@
 package ru.yandex.practicum.filmorate.repository.film;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -14,6 +19,9 @@ import java.util.*;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
+
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
             directors.director_id, directors.name as director_name FROM films
@@ -115,9 +123,28 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             ORDER BY COUNT(likes.film_id) DESC;
             """;
 
+    private static final String FIND_COMMON_FILMS_QUERY =
+            """
+                    SELECT f.film_id AS id, f.name, f.description, f.release_date, f.duration, COUNT(DISTINCT l.user_id) AS likes_count
+                    FROM films f
+                    LEFT JOIN likes l ON f.film_id = l.film_id
+                    WHERE f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :userId)
+                    AND f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :friendId)
+                    GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration
+                    ORDER BY likes_count DESC;
+                    """;
+
+
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<Film> extractor, ResultSetExtractor<List<Film>> extractorToList) {
         super(jdbc, extractor, extractorToList);
+    }
+
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        return namedParameterJdbcTemplate.query(FIND_COMMON_FILMS_QUERY,
+                new MapSqlParameterSource("userId", userId)
+                        .addValue("friendId", friendId),
+                new BeanPropertyRowMapper<>(Film.class));
     }
 
     @Override

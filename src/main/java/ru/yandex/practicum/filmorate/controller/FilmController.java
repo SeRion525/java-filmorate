@@ -3,8 +3,12 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repository.film.JdbcFilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
@@ -26,10 +31,17 @@ import java.util.List;
 
 @RestController
 @Validated
-@RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
+
+    @Autowired
+    private JdbcFilmRepository filmRepository;
+
     private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public List<Film> getFilms() {
@@ -75,4 +87,11 @@ public class FilmController {
     public List<Film> filmsByDirector(@PathVariable @Positive long directorId, @RequestParam @NotEmpty String sortBy) {
         return filmService.filmsByDirector(directorId, sortBy);
     }
+
+    @GetMapping("/common")
+    public List<Film> findCommonFilms(@RequestParam("userId") long userId,
+                                      @RequestParam("friendId") long friendId) {
+        return filmRepository.findCommonFilms(userId, friendId);
+    }
+
 }
