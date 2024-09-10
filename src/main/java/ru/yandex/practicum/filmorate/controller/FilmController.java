@@ -10,16 +10,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.film.JdbcFilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -79,8 +70,18 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getMostPopular(@RequestParam(defaultValue = "10") @Positive int count) {
-        return filmService.getMostPopular(count);
+    public List<Film> getMostPopular(
+            @RequestParam(required = false) @Positive Integer count,
+            @RequestParam(required = false) @Positive Integer year,
+            @RequestParam(required = false) @Positive Long genreId
+    ) {
+        return filmService.getMostPopular(count, year, genreId);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable @Positive long id) {
+        filmService.deleteFilm(id);
     }
 
     @GetMapping("/director/{directorId}")
@@ -88,10 +89,16 @@ public class FilmController {
         return filmService.filmsByDirector(directorId, sortBy);
     }
 
+
     @GetMapping("/common")
     public List<Film> findCommonFilms(@RequestParam("userId") long userId,
                                       @RequestParam("friendId") long friendId) {
         return filmRepository.findCommonFilms(userId, friendId);
     }
 
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {
+        return filmService.searchFilmsByTitleAndDirectors(query, by);
+    }
 }

@@ -175,7 +175,7 @@ class JdbcFilmRepositoryTest {
         void shouldGetMostPopularFilms() {
             List<Film> films = List.of(getTestFilm2(), getTestFilm1());
             filmRepository.addLike(2, 2);
-            List<Film> popular = filmRepository.getMostPopular(2);
+            List<Film> popular = filmRepository.getMostPopular(2, null, null);
 
             assertThat(popular)
                     .usingRecursiveComparison()

@@ -20,8 +20,20 @@ import java.util.*;
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
 
+
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    private final ResultSetExtractor<Map<Long, Set<Film>>> extractorToMany = new FilmMapResultSetExtractor();
+
+    private static final String DELETE_FILM_QUERY = """
+            DELETE FROM films WHERE film_id = :filmId;
+            """;
+
+    private static final String DELETE_FILM_GENRES_BY_FILM_ID_QUERY = """
+            DELETE FROM films_genres WHERE film_id = :filmId;
+            """;
+
     private static final String GET_ALL_QUERY = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
             directors.director_id, directors.name as director_name FROM films
@@ -59,8 +71,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             WHERE film_id = :filmId
             """;
 
-    private static final String DELETE_FILM_GENRES_BY_FILM_ID_QUERY = "DELETE FROM films_genres WHERE film_id = :filmId";
-
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO likes AS t
             USING (VALUES(:filmId, :userId)) AS s(film_id, user_id) ON s.user_id = t.user_id AND s.film_id = t.film_id
@@ -94,6 +104,19 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             ORDER BY popular.likes_count DESC, films.name ASC;
             """;
 
+    private static final String GET_ALL_USERS_LIKED_FILMS_QUERY = """
+            SELECT f.*, l.user_id, m.mpa_id, m.name AS mpa_name,
+                   g.genre_id AS genre_id, g.name AS genre_name,
+                   d.director_id AS director_id, d.name AS director_name
+            FROM likes l
+            JOIN films f ON l.film_id = f.film_id
+            LEFT OUTER JOIN mpa m ON f.mpa_id = m.mpa_id
+            LEFT OUTER JOIN films_genres fg ON f.film_id = fg.film_id
+            LEFT OUTER JOIN genres g ON fg.genre_id = g.genre_id
+            LEFT OUTER JOIN director_films df ON f.film_id = df.film_id
+            LEFT OUTER JOIN directors d ON df.director_id = d.director_id;
+            """;
+
     private static final String GET_FILMS_BY_DIRECTOR_BY_YEAR = """
             SELECT films.*, mpa.name AS mpa_name, genres.genre_id, genres.name AS genre_name,
             directors.director_id, directors.name as director_name FROM films
@@ -123,6 +146,7 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             ORDER BY COUNT(likes.film_id) DESC;
             """;
 
+
     private static final String FIND_COMMON_FILMS_QUERY =
             """
                     SELECT f.film_id AS id, f.name, f.description, f.release_date, f.duration, COUNT(DISTINCT l.user_id) AS likes_count
@@ -133,6 +157,27 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                     GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration
                     ORDER BY likes_count DESC;
                     """;
+
+    private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
+                SELECT f.film_id, f.name AS film_name, f.description, f.release_date, f.duration, g.genre_id,
+                 g.name AS genre_name, d.director_id, d.name AS director_name, f.mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS popularity
+                FROM films f
+                LEFT JOIN films_genres fg ON f.film_id = fg.film_id
+                LEFT JOIN mpa m ON f.mpa_id = m.mpa_id
+                LEFT JOIN genres g ON fg.genre_id = g.genre_id
+                LEFT JOIN director_films df ON f.film_id = df.film_id
+                LEFT JOIN directors d ON df.director_id = d.director_id
+                LEFT JOIN likes l ON f.film_id = l.film_id
+                WHERE
+                    (:by_director = true AND LOWER(d.name) LIKE LOWER(CONCAT('%', :query, '%')))
+                    OR
+                    (:by_title = true AND LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')))
+                GROUP BY
+                    f.film_id, f.name, f.description, f.release_date, f.duration, g.genre_id, g.name,
+                     d.director_id, d.name, f.mpa_id, m.name
+                ORDER BY popularity DESC
+            """;
+
 
 
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
@@ -211,8 +256,24 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     @Override
-    public List<Film> getMostPopular(int count) {
-        return findMany(GET_MOST_POPULAR_QUERY, new MapSqlParameterSource("count", count));
+    public List<Film> getMostPopular(Integer count, Integer year, Long genreId) {
+        return findMany(createQueryString(count, year, genreId), new MapSqlParameterSource());
+    }
+
+    @Override
+    public Map<Long, Set<Film>> findAllUsersWithLikedFilms() {
+
+        return jdbc.query(GET_ALL_USERS_LIKED_FILMS_QUERY, extractorToMany);
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitleAndDirectors(String query, boolean searchByDirector, boolean searchByTitle) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("query", query);
+        params.addValue("by_director", searchByDirector);
+        params.addValue("by_title", searchByTitle);
+
+        return findMany(GET_FILMS_BY_TITLE_AND_DIRECTORS, params);
     }
 
     @Override
@@ -255,6 +316,12 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                 .toArray(SqlParameterSource[]::new);
     }
 
+    @Override
+    public void delete(long filmId) {
+        jdbc.update(DELETE_FILM_GENRES_BY_FILM_ID_QUERY, new MapSqlParameterSource("filmId", filmId));
+        jdbc.update(DELETE_FILM_QUERY, new MapSqlParameterSource("filmId", filmId));
+    }
+
     private SqlParameterSource[] getFilmIdAndDirectorIdsSqlParameters(Film film) {
         Set<Director> directors = film.getDirectors();
 
@@ -279,5 +346,41 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             return;
         }
         jdbc.batchUpdate(INSERT_DIRECTOR_FILMS_BY_IDS, getFilmIdAndDirectorIdsSqlParameters(film));
+    }
+
+    private String createQueryString(Integer count, Integer year, Long genreId) {
+        StringBuilder whereCondition = new StringBuilder(" WHERE ");
+        StringBuilder query = new StringBuilder("""
+                SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME,
+                DIRECTORS.DIRECTOR_ID, DIRECTORS.NAME as DIRECTOR_NAME
+                FROM FILMS
+                LEFT OUTER JOIN MPA ON MPA.MPA_ID = FILMS.MPA_ID
+                LEFT OUTER JOIN FILMS_GENRES ON FILMS_GENRES.FILM_ID = FILMS.FILM_ID
+                LEFT OUTER JOIN GENRES ON GENRES.GENRE_ID = FILMS_GENRES.GENRE_ID
+                LEFT OUTER JOIN DIRECTOR_FILMS ON DIRECTOR_FILMS.FILM_ID = FILMS.FILM_ID
+                LEFT OUTER JOIN DIRECTORS ON DIRECTORS.DIRECTOR_ID = DIRECTOR_FILMS.FILM_ID
+                JOIN (SELECT films.film_id, COUNT(likes.film_id) AS likes_count FROM films
+                    LEFT OUTER JOIN likes ON likes.film_id = films.film_id
+                    GROUP BY films.film_id
+                    ORDER BY likes_count DESC
+                """);
+
+        if (count != null) {
+            query.append(" Limit ").append(count);
+        }
+        query.append(") AS popular(film_id, likes_count) ON films.film_id = popular.film_id");
+
+        if (year != null) {
+            query.append(whereCondition).append("YEAR(films.release_date) = ").append(year);
+            whereCondition.replace(0, whereCondition.length() - 1, " AND ");
+        }
+
+        if (genreId != null) {
+            query.append(whereCondition).append("films_genres.genre_id = ").append(genreId);
+        }
+
+        query.append(" ORDER BY popular.likes_count DESC, films.name ASC;");
+
+        return query.toString();
     }
 }
