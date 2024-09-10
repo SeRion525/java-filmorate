@@ -5,11 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.model.feed.Event;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
 import ru.yandex.practicum.filmorate.model.feed.Operation;
@@ -21,13 +17,7 @@ import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -136,6 +126,17 @@ public class BaseFilmService implements FilmService {
     public Collection<Film> getRecommendedFilms(Long userId) {
         Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
         return getFilms(userId, usersLikedFilmsMap);
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitleAndDirectors(String query, String by) {
+
+        List<String> searchParams = Arrays.asList(by.split(","));
+
+        boolean searchByDirector = searchParams.contains("director");
+        boolean searchByTitle = searchParams.contains("title");
+
+        return filmRepository.searchFilmsByTitleAndDirectors(query, searchByDirector, searchByTitle);
     }
 
     @Override

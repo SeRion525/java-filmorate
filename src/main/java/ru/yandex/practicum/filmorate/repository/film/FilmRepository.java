@@ -26,6 +26,8 @@ public interface FilmRepository {
 
     void delete(long filmId);
 
+    List<Film> searchFilmsByTitleAndDirectors(String query, boolean searchByDirector, boolean searchByTitle);
+
     List<Film> getDirectorFilmsSortedByYear(long directorId);
 
     List<Film> getDirectorFilmsSortedByLikes(long directorId);

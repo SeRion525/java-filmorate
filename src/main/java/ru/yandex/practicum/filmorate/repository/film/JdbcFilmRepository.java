@@ -137,6 +137,27 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             ORDER BY COUNT(likes.film_id) DESC;
             """;
 
+    private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
+                SELECT f.film_id, f.name AS film_name, f.description, f.release_date, f.duration, g.genre_id,
+                 g.name AS genre_name, d.director_id, d.name AS director_name, f.mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS popularity
+                FROM films f
+                LEFT JOIN films_genres fg ON f.film_id = fg.film_id
+                LEFT JOIN mpa m ON f.mpa_id = m.mpa_id
+                LEFT JOIN genres g ON fg.genre_id = g.genre_id
+                LEFT JOIN director_films df ON f.film_id = df.film_id
+                LEFT JOIN directors d ON df.director_id = d.director_id
+                LEFT JOIN likes l ON f.film_id = l.film_id
+                WHERE
+                    (:by_director = true AND LOWER(d.name) LIKE LOWER(CONCAT('%', :query, '%')))
+                    OR
+                    (:by_title = true AND LOWER(f.name) LIKE LOWER(CONCAT('%', :query, '%')))
+                GROUP BY
+                    f.film_id, f.name, f.description, f.release_date, f.duration, g.genre_id, g.name,
+                     d.director_id, d.name, f.mpa_id, m.name
+                ORDER BY popularity DESC
+            """;
+
+
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<Film> extractor, ResultSetExtractor<List<Film>> extractorToList) {
         super(jdbc, extractor, extractorToList);
@@ -214,6 +235,16 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     public Map<Long, Set<Film>> findAllUsersWithLikedFilms() {
 
         return jdbc.query(GET_ALL_USERS_LIKED_FILMS_QUERY, extractorToMany);
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitleAndDirectors(String query, boolean searchByDirector, boolean searchByTitle) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("query", query);
+        params.addValue("by_director", searchByDirector);
+        params.addValue("by_title", searchByTitle);
+
+        return findMany(GET_FILMS_BY_TITLE_AND_DIRECTORS, params);
     }
 
     @Override
@@ -312,7 +343,7 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
         if (year != null) {
             query.append(whereCondition).append("YEAR(films.release_date) = ").append(year);
-            whereCondition.replace(0,whereCondition.length() - 1," AND ");
+            whereCondition.replace(0, whereCondition.length() - 1, " AND ");
         }
 
         if (genreId != null) {
@@ -321,6 +352,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
         query.append(" ORDER BY popular.likes_count DESC, films.name ASC;");
 
-        return  query.toString();
+        return query.toString();
     }
 }
