@@ -19,6 +19,8 @@ import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 import java.time.Instant;
 import java.util.*;
 
+import static ru.yandex.practicum.filmorate.service.BaseDirectorService.NOT_FOUND_DIRECTOR;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -141,12 +143,15 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> filmsByDirector(long directorId, String sortBy) {
+        Director director = directorRepository.getById(directorId)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_DIRECTOR + directorId));
+
         if (sortBy.equalsIgnoreCase("year")) {
-            return filmRepository.getDirectorFilmsSortedByYear(directorId);
+            return filmRepository.getDirectorFilmsSortedByYear(director.getId());
         }
 
         if (sortBy.equalsIgnoreCase("likes")) {
-            return filmRepository.getDirectorFilmsSortedByLikes(directorId);
+            return filmRepository.getDirectorFilmsSortedByLikes(director.getId());
         }
 
         throw new ValidationException("Указан неверный параметр сортировки");
