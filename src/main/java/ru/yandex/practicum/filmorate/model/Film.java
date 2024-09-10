@@ -38,4 +38,7 @@ public class Film {
     private Set<Genre> genres = new LinkedHashSet<>();
 
     private Set<Director> directors = new LinkedHashSet<>();
+
+    private int likesCount;
+
 }

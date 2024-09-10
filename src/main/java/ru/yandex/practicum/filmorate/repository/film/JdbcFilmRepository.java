@@ -16,6 +16,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.JdbcBaseRepository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
@@ -149,13 +150,30 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
 
     private static final String FIND_COMMON_FILMS_QUERY =
             """
-                    SELECT f.film_id AS id, f.name, f.description, f.release_date, f.duration, COUNT(DISTINCT l.user_id) AS likes_count
-                    FROM films f
-                    LEFT JOIN likes l ON f.film_id = l.film_id
-                    WHERE f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :userId)
-                    AND f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :friendId)
-                    GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration
-                    ORDER BY likes_count DESC;
+                    SELECT
+                        f.film_id AS id,
+                        f.name,
+                        f.description,
+                        f.release_date,
+                        f.duration,
+                        COUNT(DISTINCT l.user_id) AS likes_count,
+                        GROUP_CONCAT(DISTINCT g.name) AS genres
+                    FROM
+                        films f
+                    LEFT JOIN
+                        likes l ON f.film_id = l.film_id
+                    LEFT JOIN
+                        films_genres fg ON f.film_id = fg.film_id
+                    LEFT JOIN
+                        genres g ON fg.genre_id = g.genre_id
+                    WHERE
+                        f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :userId)
+                    AND
+                        f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :friendId)
+                    GROUP BY
+                        f.film_id, f.name, f.description, f.release_date, f.duration
+                    ORDER BY
+                        likes_count DESC;
                     """;
 
     private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
@@ -189,7 +207,28 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
         return namedParameterJdbcTemplate.query(FIND_COMMON_FILMS_QUERY,
                 new MapSqlParameterSource("userId", userId)
                         .addValue("friendId", friendId),
-                new BeanPropertyRowMapper<>(Film.class));
+                (rs, rowNum) -> {
+                    Film film = new Film();
+                    film.setId(rs.getLong("id"));
+                    film.setName(rs.getString("name"));
+                    film.setDescription(rs.getString("description"));
+                    film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+                    film.setDuration(rs.getInt("duration"));
+                    film.setLikesCount(rs.getInt("likes_count"));
+
+                    String genresString = rs.getString("genres");
+                    if (genresString != null) {
+                        Set<Genre> genres = Arrays.stream(genresString.split(","))
+                                .map(String::trim)
+                                .map(genreName -> new Genre(null, genreName))
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
+                        film.setGenres(genres);
+                    } else {
+                        film.setGenres(Collections.emptySet());
+                    }
+
+                    return film;
+                });
     }
 
     @Override
