@@ -77,6 +77,27 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             VALUES (:filmId, :directorId);
             """;
 
+    private static final String DELETE_DIRECTOR_FILM_BY_FILM_ID = """
+            DELETE FROM director_films WHERE film_id = :filmId;
+            """;
+
+    private static final String GET_MOST_POPULAR_QUERY = """
+            SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME,
+            DIRECTORS.DIRECTOR_ID, DIRECTORS.NAME as DIRECTOR_NAME
+            FROM FILMS
+            LEFT OUTER JOIN MPA ON MPA.MPA_ID = FILMS.MPA_ID
+            LEFT OUTER JOIN FILMS_GENRES ON FILMS_GENRES.FILM_ID = FILMS.FILM_ID
+            LEFT OUTER JOIN GENRES ON GENRES.GENRE_ID = FILMS_GENRES.GENRE_ID
+            LEFT OUTER JOIN DIRECTOR_FILMS ON DIRECTOR_FILMS.FILM_ID = FILMS.FILM_ID
+            LEFT OUTER JOIN DIRECTORS ON DIRECTORS.DIRECTOR_ID = DIRECTOR_FILMS.FILM_ID
+            JOIN (SELECT films.film_id, COUNT(likes.film_id) AS likes_count FROM films
+                LEFT OUTER JOIN likes ON likes.film_id = films.film_id
+                GROUP BY films.film_id
+                ORDER BY likes_count DESC
+                LIMIT :count
+            ) AS popular(film_id, likes_count) ON films.film_id = popular.film_id
+            ORDER BY popular.likes_count DESC, films.name ASC;
+            """;
 
     private static final String GET_ALL_USERS_LIKED_FILMS_QUERY = """
             SELECT f.*, l.user_id, m.mpa_id, m.name AS mpa_name,
@@ -184,7 +205,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             """;
 
 
-
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<Film> extractor, ResultSetExtractor<List<Film>> extractorToList) {
         super(jdbc, extractor, extractorToList);
@@ -218,15 +238,13 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
         MapSqlParameterSource params = toMapSqlParameterSource(newFilm);
         update(UPDATE_FILM_QUERY, params);
 
-        if (newFilm.getDirectors() != null) {
-            updateDirectorsFilm(newFilm);
-        }
+        updateDirectorsFilm(newFilm);
 
-        if (newFilm.getGenres() == null || newFilm.getGenres().isEmpty()) {
+        if (newFilm.getGenres() == null) {
             return;
         }
 
-        update(DELETE_FILM_GENRES_BY_FILM_ID_QUERY, new MapSqlParameterSource("filmId", newFilm.getId()));
+        merge(DELETE_FILM_GENRES_BY_FILM_ID_QUERY, new MapSqlParameterSource("filmId", newFilm.getId()));
         jdbc.batchUpdate(INSERT_FILMS_GENRES_BY_FILM_ID_QUERY, getFilmIdAndGenreIdsSqlParameters(newFilm));
     }
 
@@ -336,6 +354,11 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     private void updateDirectorsFilm(Film film) {
+        if (film.getDirectors() == null || film.getDirectors().isEmpty()) {
+            merge(DELETE_DIRECTOR_FILM_BY_FILM_ID, new MapSqlParameterSource("filmId", film.getId()));
+            return;
+        }
+
         addDirectorForCurrentFilm(film);
     }
 
