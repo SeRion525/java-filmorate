@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repository.film.JdbcFilmRepository;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
@@ -17,10 +18,17 @@ import java.util.List;
 
 @RestController
 @Validated
-@RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
+
+    @Autowired
+    private JdbcFilmRepository filmRepository;
+
     private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public List<Film> getFilms() {
@@ -76,6 +84,14 @@ public class FilmController {
     public List<Film> filmsByDirector(@PathVariable @Positive long directorId, @RequestParam @NotEmpty String sortBy) {
         return filmService.filmsByDirector(directorId, sortBy);
     }
+
+
+    @GetMapping("/common")
+    public List<Film> findCommonFilms(@RequestParam("userId") long userId,
+                                      @RequestParam("friendId") long friendId) {
+        return filmRepository.findCommonFilms(userId, friendId);
+    }
+
 
     @GetMapping("/search")
     public List<Film> searchFilms(@RequestParam String query, @RequestParam String by) {

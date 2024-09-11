@@ -77,23 +77,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             VALUES (:filmId, :directorId);
             """;
 
-    private static final String GET_MOST_POPULAR_QUERY = """
-            SELECT FILMS.*, MPA.NAME AS MPA_NAME, GENRES.GENRE_ID, GENRES.NAME AS GENRE_NAME,
-            DIRECTORS.DIRECTOR_ID, DIRECTORS.NAME as DIRECTOR_NAME
-            FROM FILMS
-            LEFT OUTER JOIN MPA ON MPA.MPA_ID = FILMS.MPA_ID
-            LEFT OUTER JOIN FILMS_GENRES ON FILMS_GENRES.FILM_ID = FILMS.FILM_ID
-            LEFT OUTER JOIN GENRES ON GENRES.GENRE_ID = FILMS_GENRES.GENRE_ID
-            LEFT OUTER JOIN DIRECTOR_FILMS ON DIRECTOR_FILMS.FILM_ID = FILMS.FILM_ID
-            LEFT OUTER JOIN DIRECTORS ON DIRECTORS.DIRECTOR_ID = DIRECTOR_FILMS.FILM_ID
-            JOIN (SELECT films.film_id, COUNT(likes.film_id) AS likes_count FROM films
-                LEFT OUTER JOIN likes ON likes.film_id = films.film_id
-                GROUP BY films.film_id
-                ORDER BY likes_count DESC
-                LIMIT :count
-            ) AS popular(film_id, likes_count) ON films.film_id = popular.film_id
-            ORDER BY popular.likes_count DESC, films.name ASC;
-            """;
 
     private static final String GET_ALL_USERS_LIKED_FILMS_QUERY = """
             SELECT f.*, l.user_id, m.mpa_id, m.name AS mpa_name,
@@ -137,6 +120,49 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             ORDER BY COUNT(likes.film_id) DESC;
             """;
 
+
+    private static final String FIND_COMMON_FILMS_QUERY = """
+            SELECT\s
+                                     f.film_id,\s
+                                     f.name,\s
+                                     f.description,\s
+                                     f.release_date,\s
+                                     f.duration,\s
+                                     mpa.mpa_id,          \s
+                                     mpa.name AS mpa_name,\s
+                                     g.genre_id,           \s
+                                     g.name AS genre_name,
+                                     d.director_id,      \s
+                                     d.name AS director_name,
+                                     COUNT(l1.user_id) AS popularity
+                                 FROM\s
+                                     films f
+                                 LEFT JOIN\s
+                                     films_genres fg ON f.film_id = fg.film_id
+                                 LEFT JOIN\s
+                                     genres g ON fg.genre_id = g.genre_id
+                                 LEFT JOIN\s
+                                     director_films df ON f.film_id = df.film_id
+                                 LEFT JOIN\s
+                                     directors d ON df.director_id = d.director_id
+                                 LEFT JOIN\s
+                                     mpa ON f.mpa_id = mpa.mpa_id
+                                 JOIN\s
+                                     likes l1 ON f.film_id = l1.film_id
+                                 JOIN\s
+                                     likes l2 ON f.film_id = l2.film_id
+                                 WHERE\s
+                                     l1.user_id = :userId
+                                     AND l2.user_id = :friendId
+                                 GROUP BY\s
+                                     f.film_id, f.name, f.description, f.release_date, f.duration,\s
+                                     mpa.mpa_id, mpa.name,\s
+                                     g.genre_id, g.name,\s
+                                     d.director_id, d.name
+                                 ORDER BY\s
+                                     popularity DESC;
+            """;
+
     private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
                 SELECT f.film_id, f.name AS film_name, f.description, f.release_date, f.duration, g.genre_id,
                  g.name AS genre_name, d.director_id, d.name AS director_name, f.mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS popularity
@@ -158,9 +184,16 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             """;
 
 
+
     public JdbcFilmRepository(NamedParameterJdbcOperations jdbc,
                               ResultSetExtractor<Film> extractor, ResultSetExtractor<List<Film>> extractorToList) {
         super(jdbc, extractor, extractorToList);
+    }
+
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        SqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("friendId", friendId);
+        return findMany(FIND_COMMON_FILMS_QUERY, params);
     }
 
     @Override
