@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.repository.film;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -16,10 +14,6 @@ import java.util.*;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
-
-
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final ResultSetExtractor<Map<Long, Set<Film>>> extractorToMany = new FilmMapResultSetExtractor();
 
@@ -167,7 +161,6 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
                                      d.director_id, d.name
                                  ORDER BY\s
                                      popularity DESC;
-                                 
             """;
 
     private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
