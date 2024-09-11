@@ -128,33 +128,48 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
             """;
 
 
-    private static final String FIND_COMMON_FILMS_QUERY =
-            """
-                    SELECT
-                        f.film_id AS id,
-                        f.name,
-                        f.description,
-                        f.release_date,
-                        f.duration,
-                        COUNT(DISTINCT l.user_id) AS likes_count,
-                        GROUP_CONCAT(DISTINCT g.name) AS genres
-                    FROM
-                        films f
-                    LEFT JOIN
-                        likes l ON f.film_id = l.film_id
-                    LEFT JOIN
-                        films_genres fg ON f.film_id = fg.film_id
-                    LEFT JOIN
-                        genres g ON fg.genre_id = g.genre_id
-                    WHERE
-                        f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :userId)
-                    AND
-                        f.film_id IN (SELECT l.film_id FROM likes l WHERE l.user_id = :friendId)
-                    GROUP BY
-                        f.film_id, f.name, f.description, f.release_date, f.duration
-                    ORDER BY
-                        likes_count DESC;
-                    """;
+    private static final String FIND_COMMON_FILMS_QUERY = """
+            SELECT\s
+                                     f.film_id,\s
+                                     f.name,\s
+                                     f.description,\s
+                                     f.release_date,\s
+                                     f.duration,\s
+                                     mpa.mpa_id,          \s
+                                     mpa.name AS mpa_name,\s
+                                     g.genre_id,           \s
+                                     g.name AS genre_name,
+                                     d.director_id,      \s
+                                     d.name AS director_name,
+                                     COUNT(l1.user_id) AS popularity
+                                 FROM\s
+                                     films f
+                                 LEFT JOIN\s
+                                     films_genres fg ON f.film_id = fg.film_id
+                                 LEFT JOIN\s
+                                     genres g ON fg.genre_id = g.genre_id
+                                 LEFT JOIN\s
+                                     director_films df ON f.film_id = df.film_id
+                                 LEFT JOIN\s
+                                     directors d ON df.director_id = d.director_id
+                                 LEFT JOIN\s
+                                     mpa ON f.mpa_id = mpa.mpa_id
+                                 JOIN\s
+                                     likes l1 ON f.film_id = l1.film_id
+                                 JOIN\s
+                                     likes l2 ON f.film_id = l2.film_id
+                                 WHERE\s
+                                     l1.user_id = :userId
+                                     AND l2.user_id = :friendId
+                                 GROUP BY\s
+                                     f.film_id, f.name, f.description, f.release_date, f.duration,\s
+                                     mpa.mpa_id, mpa.name,\s
+                                     g.genre_id, g.name,\s
+                                     d.director_id, d.name
+                                 ORDER BY\s
+                                     popularity DESC;
+                                 
+            """;
 
     private static final String GET_FILMS_BY_TITLE_AND_DIRECTORS = """
                 SELECT f.film_id, f.name AS film_name, f.description, f.release_date, f.duration, g.genre_id,
@@ -184,31 +199,9 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
     }
 
     public List<Film> findCommonFilms(long userId, long friendId) {
-        return namedParameterJdbcTemplate.query(FIND_COMMON_FILMS_QUERY,
-                new MapSqlParameterSource("userId", userId)
-                        .addValue("friendId", friendId),
-                (rs, rowNum) -> {
-                    Film film = new Film();
-                    film.setId(rs.getLong("id"));
-                    film.setName(rs.getString("name"));
-                    film.setDescription(rs.getString("description"));
-                    film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-                    film.setDuration(rs.getInt("duration"));
-                    film.setLikesCount(rs.getInt("likes_count"));
-
-                    String genresString = rs.getString("genres");
-                    if (genresString != null) {
-                        Set<Genre> genres = Arrays.stream(genresString.split(","))
-                                .map(String::trim)
-                                .map(genreName -> new Genre(null, genreName))
-                                .collect(Collectors.toCollection(LinkedHashSet::new));
-                        film.setGenres(genres);
-                    } else {
-                        film.setGenres(Collections.emptySet());
-                    }
-
-                    return film;
-                });
+        SqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("friendId", friendId);
+        return findMany(FIND_COMMON_FILMS_QUERY, params);
     }
 
     @Override
