@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable @Positive long id) {
+    public User getUserById(@PathVariable long id) {
         return userService.getUserById(id);
     }
 
@@ -50,7 +50,7 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void addFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
         if (id == friendId) {
             throw new ValidationException("Пользователь не может добавить самого себя в друзья");
         }
@@ -59,7 +59,7 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void removeFriend(@PathVariable long id, @PathVariable long friendId) {
         if (id == friendId) {
             throw new ValidationException("Пользователь не может удалить самого себя из друзей");
         }
@@ -67,12 +67,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable @Positive long id) {
+    public List<User> getFriends(@PathVariable long id) {
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable @Positive long id, @PathVariable @Positive long otherId) {
+    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         if (id == otherId) {
             throw new ValidationException("ID пользователей должны отличаться");
         }
@@ -81,12 +81,12 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable @Positive long userId) {
+    public void deleteUser(@PathVariable long userId) {
         userService.deleteUser(userId);
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable @Positive long id) {
+    public Collection<Film> getRecommendations(@PathVariable long id) {
         return userService.getUserRecommendations(id);
     }
 
