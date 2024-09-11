@@ -1,11 +1,18 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -31,7 +38,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable @Positive long id) {
+    public User getUserById(@PathVariable long id) {
         return userService.getUserById(id);
     }
 
@@ -50,7 +57,7 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void addFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
         if (id == friendId) {
             throw new ValidationException("Пользователь не может добавить самого себя в друзья");
         }
@@ -59,7 +66,7 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeFriend(@PathVariable @Positive long id, @PathVariable @Positive long friendId) {
+    public void removeFriend(@PathVariable long id, @PathVariable long friendId) {
         if (id == friendId) {
             throw new ValidationException("Пользователь не может удалить самого себя из друзей");
         }
@@ -67,12 +74,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable @Positive long id) {
+    public List<User> getFriends(@PathVariable long id) {
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable @Positive long id, @PathVariable @Positive long otherId) {
+    public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         if (id == otherId) {
             throw new ValidationException("ID пользователей должны отличаться");
         }
@@ -81,12 +88,12 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable @Positive long userId) {
+    public void deleteUser(@PathVariable long userId) {
         userService.deleteUser(userId);
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable @Positive long id) {
+    public Collection<Film> getRecommendations(@PathVariable long id) {
         return userService.getUserRecommendations(id);
     }
 

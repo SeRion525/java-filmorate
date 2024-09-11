@@ -43,7 +43,7 @@ public class User {
         this.email = email;
         this.login = login;
 
-        if (name == null || name.isBlank()) {
+        if (name.isEmpty()) {
             this.name = login;
         } else {
             this.name = name;
@@ -53,10 +53,18 @@ public class User {
     }
 
     public void setLogin(@NotNull @NotBlank String login) {
-        if (this.name == null || this.name.equals(this.login)) {
+        if (this.name == null || this.name.isBlank() || this.name.equals(this.login)) {
             this.name = login;
         }
 
         this.login = login;
+    }
+
+    public void setName(String name) {
+        if (name == null || name.isBlank()) {
+            this.name = login;
+        } else {
+            this.name = name;
+        }
     }
 }

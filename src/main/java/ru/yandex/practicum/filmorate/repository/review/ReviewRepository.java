@@ -14,7 +14,7 @@ public interface ReviewRepository {
 
     Optional<Review> getById(long reviewId);
 
-    List<Review> getAll(int count);
+    List<Review> getAll(Integer count);
 
     List<Review> getAllByFilmId(long filmId, int count);
 

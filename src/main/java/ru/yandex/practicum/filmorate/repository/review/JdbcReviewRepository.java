@@ -25,11 +25,11 @@ public class JdbcReviewRepository extends JdbcBaseRepository<Review> implements 
 
     private static final String DELETE_REVIEW_QUERY = "DELETE FROM reviews WHERE review_id = :reviewId";
 
-    private static final String GET_ALL_QUERY = "SELECT * FROM reviews LIMIT :count;";
+    private static final String GET_ALL_QUERY = "SELECT * FROM reviews ORDER BY useful DESC LIMIT :count;";
 
     private static final String GET_BY_ID = "SELECT * FROM reviews WHERE review_id = :reviewId;";
 
-    private static final String GET_BY_FILM_ID = "SELECT * FROM reviews WHERE film_id = :filmId LIMIT :count;";
+    private static final String GET_BY_FILM_ID = "SELECT * FROM reviews WHERE film_id = :filmId ORDER BY useful DESC LIMIT :count;";
 
     private static final String ADD_LIKE_QUERY = """
             MERGE INTO reviews_likes AS rl
@@ -92,7 +92,11 @@ public class JdbcReviewRepository extends JdbcBaseRepository<Review> implements 
     }
 
     @Override
-    public List<Review> getAll(int count) {
+    public List<Review> getAll(Integer count) {
+        if (count == null) {
+            return findMany(GET_ALL_QUERY, new MapSqlParameterSource("count", "ALL"));
+        }
+
         return findMany(GET_ALL_QUERY, new MapSqlParameterSource("count", count));
     }
 

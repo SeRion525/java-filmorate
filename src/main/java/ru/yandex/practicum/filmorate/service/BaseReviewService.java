@@ -69,7 +69,7 @@ public class BaseReviewService implements ReviewService {
     }
 
     @Override
-    public List<Review> getReviewsByFilmId(Long filmId, int count) {
+    public List<Review> getReviewsByFilmId(Long filmId, Integer count) {
         if (filmId == null) {
             return reviewRepository.getAll(count);
         }

@@ -1,14 +1,20 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
 import ru.yandex.practicum.filmorate.validator.group.Update;
 
@@ -17,13 +23,14 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/directors")
+@Validated
 public class DirectorController {
 
     private final DirectorService directorService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Validated({Default.class, Create.class})
+    @Validated(Default.class)
     public Director save(@Valid @RequestBody Director director) {
         return directorService.save(director);
     }
@@ -34,18 +41,18 @@ public class DirectorController {
     }
 
     @GetMapping("/{id}")
-    public Director getDirectorById(@PathVariable @Positive long id) {
+    public Director getDirectorById(@PathVariable long id) {
         return directorService.getDirectorById(id);
     }
 
     @PutMapping
     @Validated({Default.class, Update.class})
-    public Director updateDirector(@RequestBody Director director) {
+    public Director updateDirector(@RequestBody @Valid Director director) {
         return directorService.update(director);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteDirectorById(@PathVariable @Positive int id) {
+    public void deleteDirectorById(@PathVariable int id) {
         directorService.deleteDirectorById(id);
     }
 }
