@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.JdbcBaseRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements FilmRepository {
