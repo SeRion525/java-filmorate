@@ -2,8 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface FilmService {
 
@@ -27,5 +27,7 @@ public interface FilmService {
 
     List<Film> filmsByDirector(long directorId, String sortBy);
 
-    Collection<Film> getRecommendedFilms(Long userId);
+    Set<Film> getRecommendedFilms(Long userId);
+
+    List<Film> findCommonFilms(long userId, long friendId);
 }

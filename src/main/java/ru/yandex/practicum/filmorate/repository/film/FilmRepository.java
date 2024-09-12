@@ -34,4 +34,5 @@ public interface FilmRepository {
 
     Map<Long, Set<Film>> findAllUsersWithLikedFilms();
 
+    List<Film> findCommonFilms(long userId, long friendId);
 }

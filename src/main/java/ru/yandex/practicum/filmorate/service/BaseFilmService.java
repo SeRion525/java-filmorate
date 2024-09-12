@@ -131,6 +131,11 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
+    public List<Film> findCommonFilms(long userId, long friendId) {
+        return filmRepository.findCommonFilms(userId, friendId);
+    }
+
+    @Override
     public List<Film> searchFilmsByTitleAndDirectors(String query, String by) {
 
         List<String> searchParams = Arrays.asList(by.split(","));

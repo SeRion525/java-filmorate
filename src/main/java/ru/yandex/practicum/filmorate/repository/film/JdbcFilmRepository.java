@@ -192,6 +192,7 @@ public class JdbcFilmRepository extends JdbcBaseRepository<Film> implements Film
         super(jdbc, extractor, extractorToList);
     }
 
+    @Override
     public List<Film> findCommonFilms(long userId, long friendId) {
         SqlParameterSource params = new MapSqlParameterSource("userId", userId)
                 .addValue("friendId", friendId);
