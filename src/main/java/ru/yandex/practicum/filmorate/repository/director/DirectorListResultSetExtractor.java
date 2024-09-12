@@ -23,6 +23,4 @@ public class DirectorListResultSetExtractor implements ResultSetExtractor<List<D
         }
         return directorList;
     }
-
-
 }

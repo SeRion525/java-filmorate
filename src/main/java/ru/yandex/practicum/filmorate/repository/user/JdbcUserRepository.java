@@ -123,7 +123,4 @@ public class JdbcUserRepository extends JdbcBaseRepository<User> implements User
         jdbc.update(DELETE_FRIENDS_BY_USER_ID_QUERY, new MapSqlParameterSource("userId", userId));
         jdbc.update(DELETE_USER_QUERY, new MapSqlParameterSource("userId", userId));
     }
-
-
-
 }
