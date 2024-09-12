@@ -4,8 +4,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.feed.Event;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface UserService {
     List<User> getUsers();
@@ -26,8 +26,7 @@ public interface UserService {
 
     void deleteUser(long userId);
 
-    Collection<Film> getUserRecommendations(long id);
+    Set<Film> getUserRecommendations(long id);
 
     List<Event> getUserFeed(long userId);
-
 }

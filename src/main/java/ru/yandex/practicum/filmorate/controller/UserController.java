@@ -22,8 +22,8 @@ import ru.yandex.practicum.filmorate.validator.group.Create;
 import ru.yandex.practicum.filmorate.validator.group.Default;
 import ru.yandex.practicum.filmorate.validator.group.Update;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @Validated
@@ -93,7 +93,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendations(@PathVariable long id) {
+    public Set<Film> getRecommendations(@PathVariable long id) {
         return userService.getUserRecommendations(id);
     }
 

@@ -13,8 +13,8 @@ import ru.yandex.practicum.filmorate.repository.event.EventRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -95,7 +95,7 @@ public class BaseUserService implements UserService {
     }
 
     @Override
-    public Collection<Film> getUserRecommendations(long id) {
+    public Set<Film> getUserRecommendations(long id) {
         userRepository.getById(id)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER + id));
         return filmService.getRecommendedFilms(id);

@@ -5,7 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.feed.Event;
 import ru.yandex.practicum.filmorate.model.feed.EventType;
 import ru.yandex.practicum.filmorate.model.feed.Operation;
@@ -17,7 +21,13 @@ import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.user.UserRepository;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.service.BaseDirectorService.NOT_FOUND_DIRECTOR;
 
@@ -125,7 +135,7 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
-    public Collection<Film> getRecommendedFilms(Long userId) {
+    public Set<Film> getRecommendedFilms(Long userId) {
         Map<Long, Set<Film>> usersLikedFilmsMap = filmRepository.findAllUsersWithLikedFilms();
         return getFilms(userId, usersLikedFilmsMap);
     }
@@ -194,7 +204,7 @@ public class BaseFilmService implements FilmService {
         filmRepository.delete(filmId);
     }
 
-    private Collection<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
+    private Set<Film> getFilms(Long userId, Map<Long, Set<Film>> usersLikedFilmsMap) {
         Set<Film> currentUserFilms = usersLikedFilmsMap.remove(userId);
 
         if (currentUserFilms == null) {
