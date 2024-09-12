@@ -4,8 +4,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.feed.Event;
-import ru.yandex.practicum.filmorate.model.feed.EventType;
-import ru.yandex.practicum.filmorate.model.feed.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,19 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class EventListResultSetExtractor implements ResultSetExtractor<List<Event>> {
+public class EventListResultSetExtractor extends AbstractEventResultSetExtractor implements ResultSetExtractor<List<Event>> {
     @Override
     public List<Event> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
         List<Event> events = new ArrayList<>();
         while (resultSet.next()) {
-            Event event = new Event();
-            event.setEventId(resultSet.getLong("event_id"));
-            event.setTimestamp(resultSet.getTimestamp("timestamp").toInstant().toEpochMilli());
-            event.setEventType(EventType.valueOf(resultSet.getString("type")));
-            event.setOperation(Operation.valueOf(resultSet.getString("operation")));
-            event.setUserId(resultSet.getLong("user_id"));
-            event.setEntityId(resultSet.getLong("entity_id"));
-            events.add(event);
+            events.add(mapEvent(resultSet));
         }
         return events;
     }

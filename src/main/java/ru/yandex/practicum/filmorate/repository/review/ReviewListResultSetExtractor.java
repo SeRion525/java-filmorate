@@ -11,19 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ReviewListResultSetExtractor implements ResultSetExtractor<List<Review>> {
+public class ReviewListResultSetExtractor extends AbstractReviewResultSetExtractor implements ResultSetExtractor<List<Review>> {
     @Override
     public List<Review> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
         List<Review> reviews = new ArrayList<>();
         while (resultSet.next()) {
-            Review review = new Review();
-            review.setReviewId(resultSet.getLong("review_id"));
-            review.setContent(resultSet.getString("content"));
-            review.setIsPositive(resultSet.getBoolean("is_positive"));
-            review.setUserId(resultSet.getLong("user_id"));
-            review.setFilmId(resultSet.getLong("film_id"));
-            review.setUseful(resultSet.getInt("useful"));
-            reviews.add(review);
+            reviews.add(mapReview(resultSet));
         }
         return reviews;
     }
