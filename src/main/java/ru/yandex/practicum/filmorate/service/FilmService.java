@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Set;
 
 public interface FilmService {
+
     List<Film> getFilms();
 
     Film getFilmById(long filmId);
@@ -17,5 +19,15 @@ public interface FilmService {
 
     void removeLike(long filmId, long userId);
 
-    List<Film> getMostPopular(int count);
+    List<Film> getMostPopular(Integer count, Integer year, Long genreId);
+
+    void deleteFilm(long filmId);
+
+    List<Film> searchFilmsByTitleAndDirectors(String query, String by);
+
+    List<Film> filmsByDirector(long directorId, String sortBy);
+
+    Set<Film> getRecommendedFilms(Long userId);
+
+    List<Film> findCommonFilms(long userId, long friendId);
 }

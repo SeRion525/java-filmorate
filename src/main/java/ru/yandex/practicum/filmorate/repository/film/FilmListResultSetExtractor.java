@@ -3,15 +3,13 @@ package ru.yandex.practicum.filmorate.repository.film;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class FilmListResultSetExtractor extends AbstractFilmResultExtractor implements ResultSetExtractor<List<Film>> {
@@ -20,6 +18,7 @@ public class FilmListResultSetExtractor extends AbstractFilmResultExtractor impl
         List<Film> films = new ArrayList<>();
         Film currentFilm = null;
         Set<Genre> genres = new LinkedHashSet<>();
+        Set<Director> directors = new LinkedHashSet<>();
 
         while (resultSet.next()) {
             long filmId = resultSet.getLong("film_id");
@@ -27,9 +26,11 @@ public class FilmListResultSetExtractor extends AbstractFilmResultExtractor impl
                 currentFilm = mapFilm(resultSet);
             } else if (currentFilm.getId() != filmId) {
                 currentFilm.setGenres(genres);
+                currentFilm.setDirectors(directors);
                 films.add(currentFilm);
 
                 genres = new LinkedHashSet<>();
+                directors = new LinkedHashSet<>();
                 currentFilm = mapFilm(resultSet);
             }
 
@@ -38,10 +39,15 @@ public class FilmListResultSetExtractor extends AbstractFilmResultExtractor impl
                 genres.add(genre);
             }
 
+            Director director = mapDirector(resultSet);
+            if (director != null) {
+                directors.add(director);
+            }
         }
 
         if (currentFilm != null) {
             currentFilm.setGenres(genres);
+            currentFilm.setDirectors(directors);
             films.add(currentFilm);
         }
 

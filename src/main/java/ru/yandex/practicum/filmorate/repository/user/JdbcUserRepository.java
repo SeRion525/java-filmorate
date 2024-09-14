@@ -14,6 +14,8 @@ import java.util.Optional;
 public class JdbcUserRepository extends JdbcBaseRepository<User> implements UserRepository {
     private static final String GET_ALL_QUERY = "SELECT users.* FROM users;";
 
+    private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE user_id = :userId;";
+    private static final String DELETE_FRIENDS_BY_USER_ID_QUERY = "DELETE FROM FRIENDS WHERE FRIEND_ID = :userId";
     private static final String GET_BY_ID_QUERY = "SELECT users.* FROM users WHERE user_id = :userId";
 
     private static final String INSERT_USER_QUERY = """
@@ -114,5 +116,11 @@ public class JdbcUserRepository extends JdbcBaseRepository<User> implements User
         params.addValue("birth", user.getBirthday());
 
         return params;
+    }
+
+    @Override
+    public void delete(long userId) {
+        jdbc.update(DELETE_FRIENDS_BY_USER_ID_QUERY, new MapSqlParameterSource("userId", userId));
+        jdbc.update(DELETE_USER_QUERY, new MapSqlParameterSource("userId", userId));
     }
 }
